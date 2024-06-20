@@ -29,12 +29,12 @@ players = []
 num_players = 2
 for i in range(num_players):
     playercoords1 = (random.randint(0, map_size-1), random.randint(0, map_size-1))
-    playercoords2 = (random.randint(0, map_size-1), random.randint(0, map_size-1))
-    map_occupied_tiles.append((playercoords1, playercoords2))   
+    #playercoords2 = (random.randint(0, map_size-1), random.randint(0, map_size-1))playercoords2
+    map_occupied_tiles.append((playercoords1 ))   
     players.append(
         {
             "color": (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
-            "coordinates": (playercoords1, playercoords2),
+            "coordinates": (playercoords1[0], playercoords1[1]),
             "num_of_tiles": 1
         }
     )
@@ -59,9 +59,10 @@ def expandsion_initial():
     global map_free_tiles, players
     for i in range(num_players):
         players[i-1].coordinates.append(logic_for_finding_nearest_free_tile(i))
-        pass
-    
-
+        
+#removing occupied tiles from free tiles
+def remove_tiles():
+    pass
 
 running = True
 initial_check = True
@@ -70,23 +71,23 @@ initial_check = True
 while running:
 
     # Background color
-    screen.fill((0, 0, 0))
+    screen.fill((255, 255, 255))
     #event checking
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    # Drawing map
-    for i in range(map_size):
-        for j in range(map_size):
-            pygame.draw.rect(screen, (255, 255, 255), (i*100, j*100, 100, 100))
+    #Drawing map
+    #for i in range(map_size):
+       # for j in range(map_size):
+           # pygame.draw.rect(screen, (255, 255, 255), (i*100, j*100, 100, 100))
     
     # checking if players are not on top of each other
     while initial_check:
         for i in range(num_players):
             for j in range(num_players):
                 if i == j:
-                    continue
+                    pass
                 elif players[i]["coordinates"] == players[j]["coordinates"]:
                     list_of_similar = []
                     list_of_similar.append(i)
@@ -100,21 +101,23 @@ while running:
                     players[random.choice(list_of_similar)]["color"] = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
                     list_of_similar.clear()
     # removing occupied tiles from free tiles
-    map_free_tiles -= num_players
-    print(len(map_free_tiles))
-    for i in range(len(map_occupied_tiles)):
-        index_version_of_free_tiles.remove(map_occupied_tiles[i][i+1])
-        i+=2
+        map_free_tiles -= num_players
+        print(map_free_tiles)
+        print(map_occupied_tiles)
         print(index_version_of_free_tiles)
 
-    initial_check = False
+        for i in range(num_players):
+            map_occupied_tiles.append(players[i]["coordinates"])
+            index_version_of_free_tiles.remove(players[i]["coordinates"])
+        print(index_version_of_free_tiles)
+        initial_check = False
 
     # Drawing players
     current_round = 1
     for player in players:
         for i in range(current_round):
             for j in range(current_round):
-                pygame.draw.rect(screen, player["color"], (player["coordinates"][i-1][0]*100, player["coordinates"][i-1][1]*100, 100, 100))
+                pygame.draw.rect(screen, player["color"], (player["coordinates"][0]*100, player["coordinates"][1]*100, 100, 100))
     current_round += 1
 
     # peacefull expansion logic   
@@ -129,8 +132,3 @@ while running:
 
 pygame.quit()
 
-
-
-
-
-pygame.quit()
