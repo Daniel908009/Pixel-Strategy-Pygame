@@ -6,6 +6,8 @@ pygame.init()
 
 # map logic and free tiles logic
 map_size = 5
+pixel_size = 50
+controlwindowsize = pixel_size
 map = []
 map_free_tiles = map_size*map_size
 map_occupied_tiles = []
@@ -19,17 +21,17 @@ for i in range(map_size):
         
 
 # Screen setings
-screen = pygame.display.set_mode((map_size*100, map_size*100))
+screen = pygame.display.set_mode((map_size*pixel_size+controlwindowsize, map_size*pixel_size))
 pygame.display.set_caption("Pixel Strategy")
-#pygame.display.set_icon(pygame.image.load("assets/icon.png"))
+pygame.display.set_icon(pygame.image.load("Pixel_strategy/strategy.png"))
 
 
 # creating players and setting their initial position
 players = []
+which_player_occupies_what = []
 num_players = 2
 for i in range(num_players):
     playercoords1 = (random.randint(0, map_size-1), random.randint(0, map_size-1))
-    #playercoords2 = (random.randint(0, map_size-1), random.randint(0, map_size-1))playercoords2
     map_occupied_tiles.append((playercoords1 ))   
     players.append(
         {
@@ -39,30 +41,24 @@ for i in range(num_players):
         }
     )
 
-
-# logic for finding free tile around player
-def logic_for_finding_nearest_free_tile(player):
-        for m in range(players.num_of_tiles):
-            coords = players[player].coordinates[m-1]
-            coords_to_check = []
-            for i in range(3):
-                for j in range(3):
-                    coords_to_check.append((coords[0]-1+i, coords[1]-1+j))
-                    print(coords_to_check)
     
-
-
-
-
-# expansion logic function
-def expandsion_initial():
-    global map_free_tiles, players
-    for i in range(num_players):
-        players[i-1].coordinates.append(logic_for_finding_nearest_free_tile(i))
-        
-#removing occupied tiles from free tiles
-def remove_tiles():
+def reset_game():
     pass
+
+
+# expansion logic function, finds free tiles around all the player controled ones
+def expandsion_initial():
+    pass
+    
+        
+# removing occupied tiles from free tiles
+def remove_occupied_tiles():
+    global map_free_tiles, map_occupied_tiles, index_version_of_free_tiles
+    map_free_tiles -= num_players
+    for i in range(num_players):
+        map_occupied_tiles.append(players[i]["coordinates"])
+        index_version_of_free_tiles.remove(players[i]["coordinates"])
+    
 
 running = True
 initial_check = True
@@ -72,15 +68,17 @@ while running:
 
     # Background color
     screen.fill((255, 255, 255))
+
+    #control screen color and size
+    pygame.draw.rect(screen, (50, 50, 50), (map_size*pixel_size, 0, controlwindowsize, map_size*pixel_size))
+
     #event checking
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
-    #Drawing map
-    #for i in range(map_size):
-       # for j in range(map_size):
-           # pygame.draw.rect(screen, (255, 255, 255), (i*100, j*100, 100, 100))
+        elif event.type == pygame.KEYDOWN:
+            if event.type == pygame.r:
+                reset_game()
     
     # checking if players are not on top of each other
     while initial_check:
@@ -100,28 +98,25 @@ while running:
                     list_of_similar.append(j)
                     players[random.choice(list_of_similar)]["color"] = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
                     list_of_similar.clear()
-    # removing occupied tiles from free tiles
-        map_free_tiles -= num_players
-        print(map_free_tiles)
-        print(map_occupied_tiles)
-        print(index_version_of_free_tiles)
 
+    #which player has which tile
         for i in range(num_players):
-            map_occupied_tiles.append(players[i]["coordinates"])
-            index_version_of_free_tiles.remove(players[i]["coordinates"])
-        print(index_version_of_free_tiles)
+            which_player_occupies_what.append(players[i]["coordinates"])
+
+    # removing occupied tiles from free tiles
+        remove_occupied_tiles()
+         
+    #check is done
         initial_check = False
 
-    # Drawing players
-    current_round = 1
-    for player in players:
-        for i in range(current_round):
-            for j in range(current_round):
-                pygame.draw.rect(screen, player["color"], (player["coordinates"][0]*100, player["coordinates"][1]*100, 100, 100))
-    current_round += 1
+    # Drawing players and player controlled tiles
+    for i in range(num_players):
+        pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][0]*pixel_size, players[i]["coordinates"][1]*pixel_size, pixel_size, pixel_size))
+        for j in range(players[i]["num_of_tiles"]):
+            pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][0]*pixel_size, players[i]["coordinates"][1]*pixel_size, pixel_size, pixel_size))
 
     # peacefull expansion logic   
-    #expandsion_initial()
+    expandsion_initial()
 
 
 
@@ -131,4 +126,3 @@ while running:
 
 
 pygame.quit()
-
