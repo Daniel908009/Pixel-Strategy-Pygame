@@ -6,7 +6,7 @@ pygame.init()
 
 # map logic and free tiles logic
 map_size = 5
-pixel_size = 50
+pixel_size = 100
 controlwindowsize = pixel_size
 map = []
 map_free_tiles = map_size*map_size
@@ -28,7 +28,6 @@ pygame.display.set_icon(pygame.image.load("Pixel_strategy/strategy.png"))
 
 # creating players and setting their initial position
 players = []
-which_player_occupies_what = []
 num_players = 2
 for i in range(num_players):
     playercoords1 = (random.randint(0, map_size-1), random.randint(0, map_size-1))
@@ -36,7 +35,7 @@ for i in range(num_players):
     players.append(
         {
             "color": (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
-            "coordinates": (playercoords1[0], playercoords1[1]),
+            "coordinates": [(playercoords1[0], playercoords1[1])],
             "num_of_tiles": 1
         }
     )
@@ -56,12 +55,15 @@ def remove_occupied_tiles():
     global map_free_tiles, map_occupied_tiles, index_version_of_free_tiles
     map_free_tiles -= num_players
     for i in range(num_players):
-        map_occupied_tiles.append(players[i]["coordinates"])
-        index_version_of_free_tiles.remove(players[i]["coordinates"])
+        map_occupied_tiles.append(players[i]["coordinates"][0])
+        index_version_of_free_tiles.remove(players[i]["coordinates"][0])
     
 
 running = True
 initial_check = True
+
+#here for testing purposes
+players[0]["coordinates"].append((0, 0))
 
 # Main loop
 while running:
@@ -99,10 +101,6 @@ while running:
                     players[random.choice(list_of_similar)]["color"] = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
                     list_of_similar.clear()
 
-    #which player has which tile
-        for i in range(num_players):
-            which_player_occupies_what.append(players[i]["coordinates"])
-
     # removing occupied tiles from free tiles
         remove_occupied_tiles()
          
@@ -111,9 +109,9 @@ while running:
 
     # Drawing players and player controlled tiles
     for i in range(num_players):
-        pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][0]*pixel_size, players[i]["coordinates"][1]*pixel_size, pixel_size, pixel_size))
-        for j in range(players[i]["num_of_tiles"]):
-            pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][0]*pixel_size, players[i]["coordinates"][1]*pixel_size, pixel_size, pixel_size))
+        for j in range(len(players[i]["coordinates"])): 
+            pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][j][0]*pixel_size, players[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
+            
 
     # peacefull expansion logic   
     expandsion_initial()
