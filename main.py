@@ -1,13 +1,13 @@
 import pygame
 import random
+import time
 
 
 pygame.init()
 
 # map logic and free tiles logic
-map_size = 5
-pixel_size = 100
-controlwindowsize = pixel_size
+map_size = 40
+pixel_size = 20
 map = []
 map_free_tiles = map_size*map_size
 map_occupied_tiles = []
@@ -21,14 +21,14 @@ for i in range(map_size):
         
 
 # Screen setings
-screen = pygame.display.set_mode((map_size*pixel_size+controlwindowsize, map_size*pixel_size))
+screen = pygame.display.set_mode((map_size*pixel_size+map_size*pixel_size/10, map_size*pixel_size))
 pygame.display.set_caption("Pixel Strategy")
 pygame.display.set_icon(pygame.image.load("Pixel_strategy/strategy.png"))
-
+controlwindowsize = map_size*pixel_size/10
 
 # creating players and setting their initial position
 players = []
-num_players = 2
+num_players = 3
 for i in range(num_players):
     playercoords1 = (random.randint(0, map_size-1), random.randint(0, map_size-1))
     map_occupied_tiles.append((playercoords1 ))   
@@ -47,8 +47,29 @@ def reset_game():
 
 # expansion logic function, finds free tiles around all the player controled ones
 def expandsion_initial():
-    pass
-    
+    global map_free_tiles, map_occupied_tiles, index_version_of_free_tiles
+    potential_tiles = []
+    free_potential_tiles = []
+    for i in range(num_players):
+        for j in range(len(players[i]["coordinates"])):
+            potential_tiles.append((players[i]["coordinates"][j][0]+1, players[i]["coordinates"][j][1]))
+            potential_tiles.append((players[i]["coordinates"][j][0]-1, players[i]["coordinates"][j][1]))
+            potential_tiles.append((players[i]["coordinates"][j][0], players[i]["coordinates"][j][1]+1))
+            potential_tiles.append((players[i]["coordinates"][j][0], players[i]["coordinates"][j][1]-1))
+        list1 = potential_tiles
+        list2 = index_version_of_free_tiles
+        free_potential_tiles = [value for value in list1 if value in list2]
+        try:
+            random_tile = random.choice(free_potential_tiles)
+            map_free_tiles -= 1
+            index_version_of_free_tiles.remove(random_tile)
+            players[i]["coordinates"].append(random_tile)
+            free_potential_tiles.clear()
+            potential_tiles.clear()
+        except IndexError:
+            pass
+
+
         
 # removing occupied tiles from free tiles
 def remove_occupied_tiles():
@@ -58,12 +79,19 @@ def remove_occupied_tiles():
         map_occupied_tiles.append(players[i]["coordinates"][0])
         index_version_of_free_tiles.remove(players[i]["coordinates"][0])
     
+# battle logic function, decides how the war will go
+def battle_logic():
+    pass
+
+def diplomacy_logic():
+    pass
+
+
 
 running = True
 initial_check = True
 
-#here for testing purposes
-players[0]["coordinates"].append((0, 0))
+
 
 # Main loop
 while running:
@@ -113,10 +141,14 @@ while running:
             pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][j][0]*pixel_size, players[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
             
 
-    # peacefull expansion logic   
-    expandsion_initial()
+    # peacefull expansion logic
+    if map_free_tiles > 0:  
+        expandsion_initial()
+    else:
+        diplomacy_logic()
+        battle_logic()
 
-
+    time.sleep(0.05)
 
     pygame.display.update()
 
