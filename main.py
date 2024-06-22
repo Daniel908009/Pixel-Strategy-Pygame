@@ -18,7 +18,9 @@ for i in range(map_size):
 for i in range(map_size):
     for j in range(map_size):
         index_version_of_free_tiles.append((i, j))
-        
+
+# diplomacy variables
+wars = []        
 
 # Screen setings
 screen = pygame.display.set_mode((map_size*pixel_size+map_size*pixel_size/10, map_size*pixel_size))
@@ -28,7 +30,7 @@ controlwindowsize = map_size*pixel_size/10
 
 # creating players and setting their initial position
 players = []
-num_players = 3
+num_players = 40
 for i in range(num_players):
     playercoords1 = (random.randint(0, map_size-1), random.randint(0, map_size-1))
     map_occupied_tiles.append((playercoords1 ))   
@@ -64,6 +66,7 @@ def expandsion_initial():
             map_free_tiles -= 1
             index_version_of_free_tiles.remove(random_tile)
             players[i]["coordinates"].append(random_tile)
+            players[i]["num_of_tiles"] += 1
             free_potential_tiles.clear()
             potential_tiles.clear()
         except IndexError:
@@ -83,10 +86,35 @@ def remove_occupied_tiles():
 def battle_logic():
     pass
 
+# peace logic function, decides how will peace be implemented
+def peace_logic(player):
+    if player in wars:
+        i = wars.index(player)
+        wars.pop(i)
+
+# war logic function, decides how will war be implemented between 2 players
+def war_logic(player):
+    enemy = random.choice(players)
+    if enemy == player:
+        war_logic(player)
+    else:
+        wars.append((player, enemy))
+
+# diplomacy logic function, decides what will happen between players
 def diplomacy_logic():
-    pass
-
-
+    chance_of_action = 10000
+    diplomacy_options = ["peace","war"]
+    for i in range(chance_of_action):
+        diplomacy_options.append("nothing")
+    for i in range(num_players):
+        choice = random.choice(diplomacy_options)
+        if choice == "peace":
+            peace_logic(i)
+        elif choice == "war":
+            war_logic(i)
+        else:
+            pass
+    
 
 running = True
 initial_check = True
@@ -148,7 +176,9 @@ while running:
         diplomacy_logic()
         battle_logic()
 
-    time.sleep(0.05)
+    time.sleep(0.4)
+    
+    print(wars)    
 
     pygame.display.update()
 
