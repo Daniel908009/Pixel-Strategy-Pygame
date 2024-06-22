@@ -1,4 +1,4 @@
-# futere updates will adress the sometimes present error and will potentialy include multicoring as current one thread is starting to be not enough
+# futere updates will adress and will potentialy include multicoring as current one thread is starting to be not enough
 # Also peace function will have to be advanced, currently its only temporary solution
 # Final core function will be added and thats the battle function, it will use chances to determine who would win
 
@@ -12,8 +12,8 @@ import time
 pygame.init()
 
 # map logic and free tiles logic
-map_size = 100
-pixel_size = 5
+map_size = 5
+pixel_size = 50
 map = []
 map_free_tiles = map_size*map_size
 map_occupied_tiles = []
@@ -36,7 +36,7 @@ controlwindowsize = map_size*pixel_size/10
 
 # creating players and setting their initial position
 players = []
-num_players = 5
+num_players = 2
 for i in range(num_players):
     playercoords1 = (random.randint(0, map_size-1), random.randint(0, map_size-1))
     map_occupied_tiles.append((playercoords1 ))   
@@ -53,7 +53,7 @@ def reset_game():
     pass
 
 
-# expansion logic function, finds free tiles around all the player controled ones
+# expansion logic function, finds free tiles around all the player controled ones, currently only in 4 directions, will be expanded to 8 once the game is more advanced
 def expandsion_initial():
     global map_free_tiles, map_occupied_tiles, index_version_of_free_tiles
     potential_tiles = []
@@ -86,39 +86,70 @@ def remove_occupied_tiles():
     map_free_tiles -= num_players
     for i in range(num_players):
         map_occupied_tiles.append(players[i]["coordinates"][0])
-        #possible errors may be happening here, working on it
         try:
             index_version_of_free_tiles.remove(players[i]["coordinates"][0])
         except ValueError:
             pass
-# battle logic function, decides how the war will go
+
+# battle logic function, decides how the war will go, it uses the power of players to determine the chances of wining in each battle for each tile
 def battle_logic():
-    pass
+    if len(wars) == 0:
+        pass
+    else:
+        for i in range(len(wars)):
+            player1 = wars[i][0]
+            player2 = wars[i][1]
+            players_in_war = []
+            players_in_war.append(player1)
+            players_in_war.append(player2)
+            power1 = players[player1]["num_of_tiles"]
+            power2 = players[player2]["num_of_tiles"]
+            border_tiles = []
+            potential_tiles1 = []
+            potential_tiles2 = []
+
+            # Needs to be completed, currently its only a basic idea
+            for j in range(len(players[player1]["coordinates"])):
+                potential_tiles1.append((players[player1]["coordinates"][j][0]+1, players[i]["coordinates"][j][1]))
+                potential_tiles1.append((players[player1]["coordinates"][j][0]-1, players[i]["coordinates"][j][1]))
+                potential_tiles1.append((players[player1]["coordinates"][j][0], players[i]["coordinates"][j][1]+1))
+                potential_tiles1.append((players[player1]["coordinates"][j][0], players[i]["coordinates"][j][1]-1))
+            for k in range(len(players[player2]["coordinates"])):
+                potential_tiles2.append((players[player2]["coordinates"][k][0]+1, players[i]["coordinates"][k][1]))
+                potential_tiles2.append((players[i]["coordinates"][k][0]-1, players[i]["coordinates"][k][1]))
+                potential_tiles2.append((players[i]["coordinates"][k][0], players[i]["coordinates"][k][1]+1))
+                potential_tiles2.append((players[i]["coordinates"][k][0], players[i]["coordinates"][k][1]-1))
+            #for i in potential_tiles1:
+                #if i in player2["coordinates"]:
+                    #border_tiles.append(i)
+            print(potential_tiles1)
+            #for j in potential_tiles2:
+                #if j in player1["coordinates"]:
+                    #border_tiles.append(j)
+            print(potential_tiles2)
+            print(border_tiles)
+
 
 # peace logic function, removes players from wars list, currently peaces out with all other players 
 # eventualy only one war will be peaced out, working on it
-
 def peace_logic(player):
-    print(player)
     possible_peace = []
     for i in range(len(wars)):
         if wars[i][0] == player or wars[i][1] == player:
             possible_peace.append(i)
-    print(possible_peace)
     m = 0
     for i in possible_peace:
         wars.pop(i-m)
         m += 1
-    print(wars)
+    
 
 # war logic function, decides how will war be implemented between 2 players
 def war_logic(player):
     enemy = random.randint(0, num_players-1)
     if enemy == player or (player, enemy) in wars or (enemy, player) in wars:
-        print("war not declared, invalid enemy or war already declared")
+        pass
     else:
         wars.append((player, enemy))
-    print(wars)
 
 # diplomacy logic function, decides what will happen between players
 def diplomacy_logic():
@@ -138,23 +169,12 @@ def diplomacy_logic():
     for i in range(num_players):
         choice = random.choice(diplomacy_options)
         if choice == "peace":
-            print("peace declared")
             peace_logic(i)
         elif choice == "war":
-            print("war declared")
             war_logic(i)
         else:
             pass
     
-# war rearenge function, rearenges the indexes of the wars list, so that the first index is always larger than the second
-def wars_rearenge():
-    for i in range(len(wars)):
-        if wars[i][0] < wars[i][1]:
-            pass
-        else:
-            wars[i] = (wars[i][1], wars[i][0])
-
-
 
 running = True
 initial_check = True
@@ -180,17 +200,18 @@ while running:
     
     # checking if players are not on top of each other
     while initial_check:
+        needs_recheck = False
         for i in range(num_players):
             for j in range(num_players):
                 if i == j:
                     pass
-                elif players[i]["coordinates"] == players[j]["coordinates"]:
+                elif players[i]["coordinates"][0] == players[j]["coordinates"][0]:
                     list_of_similar = []
                     list_of_similar.append(i)
                     list_of_similar.append(j)
-                    players[random.choice(list_of_similar)]["coordinates"] = (random.randint(0, map_size-1), random.randint(0, map_size-1))
-                    
+                    players[random.choice(list_of_similar)]["coordinates"][0] = (random.randint(0, map_size-1), random.randint(0, map_size-1))
                     list_of_similar.clear()
+                    needs_recheck = True
                 elif players[i]["color"] == players[j]["color"]:
                     list_of_similar.append(i)
                     list_of_similar.append(j)
@@ -201,10 +222,12 @@ while running:
         remove_occupied_tiles()
          
     #check is done
-        initial_check = False
+        if needs_recheck:
+            initial_check = True
+        else:
+            initial_check = False
 
-    # Drawing players and player controlled tiles, can somehow generate errors, not sure why, posibly when they have some kind of wrong coordinates?
-    # working on it
+    # Drawing players and player controlled tiles, now fully working!!!
     for i in range(num_players):
         for j in range(len(players[i]["coordinates"])): 
             pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][j][0]*pixel_size, players[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
@@ -214,11 +237,10 @@ while running:
     if map_free_tiles > 0:  
         expandsion_initial()
     else:
-        wars_rearenge()
         diplomacy_logic()
         battle_logic()
 
-    time.sleep(0.1)
+    time.sleep(0.4)
     
     pygame.display.update()
 
