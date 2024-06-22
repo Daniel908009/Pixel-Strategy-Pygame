@@ -1,3 +1,9 @@
+# futere updates will adress the sometimes present error and will potentialy include multicoring as current one thread is starting to be not enough
+# Also peace function will have to be advanced, currently its only temporary solution
+# Final core function will be added and thats the battle function, it will use chances to determine who would win
+
+
+
 import pygame
 import random
 import time
@@ -6,8 +12,8 @@ import time
 pygame.init()
 
 # map logic and free tiles logic
-map_size = 4
-pixel_size = 20
+map_size = 100
+pixel_size = 5
 map = []
 map_free_tiles = map_size*map_size
 map_occupied_tiles = []
@@ -30,7 +36,7 @@ controlwindowsize = map_size*pixel_size/10
 
 # creating players and setting their initial position
 players = []
-num_players = 2
+num_players = 5
 for i in range(num_players):
     playercoords1 = (random.randint(0, map_size-1), random.randint(0, map_size-1))
     map_occupied_tiles.append((playercoords1 ))   
@@ -89,10 +95,21 @@ def remove_occupied_tiles():
 def battle_logic():
     pass
 
-# peace logic function, removes players from wars list
-def peace_logic(player):
-    pass
+# peace logic function, removes players from wars list, currently peaces out with all other players 
+# eventualy only one war will be peaced out, working on it
 
+def peace_logic(player):
+    print(player)
+    possible_peace = []
+    for i in range(len(wars)):
+        if wars[i][0] == player or wars[i][1] == player:
+            possible_peace.append(i)
+    print(possible_peace)
+    m = 0
+    for i in possible_peace:
+        wars.pop(i-m)
+        m += 1
+    print(wars)
 
 # war logic function, decides how will war be implemented between 2 players
 def war_logic(player):
@@ -101,13 +118,23 @@ def war_logic(player):
         print("war not declared, invalid enemy or war already declared")
     else:
         wars.append((player, enemy))
+    print(wars)
 
 # diplomacy logic function, decides what will happen between players
 def diplomacy_logic():
-    chance_of_action = 10
-    diplomacy_options = ["peace","war"]
-    for i in range(chance_of_action):
+    chance_of_nothing = 10
+    diplomacy_options = []
+    chance_of_peace = 3
+    chance_of_war = 5
+    for i in range(chance_of_nothing):
         diplomacy_options.append("nothing")
+
+    for j in range(chance_of_peace):
+        diplomacy_options.append("peace")
+    
+    for k in range(chance_of_war):
+        diplomacy_options.append("war")
+    
     for i in range(num_players):
         choice = random.choice(diplomacy_options)
         if choice == "peace":
@@ -176,7 +203,8 @@ while running:
     #check is done
         initial_check = False
 
-    # Drawing players and player controlled tiles
+    # Drawing players and player controlled tiles, can somehow generate errors, not sure why, posibly when they have some kind of wrong coordinates?
+    # working on it
     for i in range(num_players):
         for j in range(len(players[i]["coordinates"])): 
             pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][j][0]*pixel_size, players[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
@@ -190,10 +218,8 @@ while running:
         diplomacy_logic()
         battle_logic()
 
-    time.sleep(0.4)
+    time.sleep(0.1)
     
-    print(wars)    
-
     pygame.display.update()
 
 
