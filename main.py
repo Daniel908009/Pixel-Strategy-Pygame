@@ -6,7 +6,7 @@ import time
 pygame.init()
 
 # map logic and free tiles logic
-map_size = 40
+map_size = 4
 pixel_size = 20
 map = []
 map_free_tiles = map_size*map_size
@@ -30,7 +30,7 @@ controlwindowsize = map_size*pixel_size/10
 
 # creating players and setting their initial position
 players = []
-num_players = 40
+num_players = 2
 for i in range(num_players):
     playercoords1 = (random.randint(0, map_size-1), random.randint(0, map_size-1))
     map_occupied_tiles.append((playercoords1 ))   
@@ -80,41 +80,54 @@ def remove_occupied_tiles():
     map_free_tiles -= num_players
     for i in range(num_players):
         map_occupied_tiles.append(players[i]["coordinates"][0])
-        index_version_of_free_tiles.remove(players[i]["coordinates"][0])
-    
+        #possible errors may be happening here, working on it
+        try:
+            index_version_of_free_tiles.remove(players[i]["coordinates"][0])
+        except ValueError:
+            pass
 # battle logic function, decides how the war will go
 def battle_logic():
     pass
 
-# peace logic function, decides how will peace be implemented
+# peace logic function, removes players from wars list
 def peace_logic(player):
-    if player in wars:
-        i = wars.index(player)
-        wars.pop(i)
+    pass
+
 
 # war logic function, decides how will war be implemented between 2 players
 def war_logic(player):
-    enemy = random.choice(players)
-    if enemy == player:
-        war_logic(player)
+    enemy = random.randint(0, num_players-1)
+    if enemy == player or (player, enemy) in wars or (enemy, player) in wars:
+        print("war not declared, invalid enemy or war already declared")
     else:
         wars.append((player, enemy))
 
 # diplomacy logic function, decides what will happen between players
 def diplomacy_logic():
-    chance_of_action = 10000
+    chance_of_action = 10
     diplomacy_options = ["peace","war"]
     for i in range(chance_of_action):
         diplomacy_options.append("nothing")
     for i in range(num_players):
         choice = random.choice(diplomacy_options)
         if choice == "peace":
+            print("peace declared")
             peace_logic(i)
         elif choice == "war":
+            print("war declared")
             war_logic(i)
         else:
             pass
     
+# war rearenge function, rearenges the indexes of the wars list, so that the first index is always larger than the second
+def wars_rearenge():
+    for i in range(len(wars)):
+        if wars[i][0] < wars[i][1]:
+            pass
+        else:
+            wars[i] = (wars[i][1], wars[i][0])
+
+
 
 running = True
 initial_check = True
@@ -173,6 +186,7 @@ while running:
     if map_free_tiles > 0:  
         expandsion_initial()
     else:
+        wars_rearenge()
         diplomacy_logic()
         battle_logic()
 
