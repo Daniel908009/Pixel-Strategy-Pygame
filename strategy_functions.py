@@ -46,13 +46,33 @@ def battle_logic_core(power1, power2, player1, player2):
     
 # Function to change the owner of the tile after the battle ends
 def change_of_owner(winner_of_battle, tile_attacked, players, player1, player2):
+    ply = players
+    print(ply)
     if winner_of_battle[0] == player1:
-        players[player2]["coordinates"].remove(tile_attacked)
-        players[player1]["coordinates"].append(tile_attacked)
-        players[player1]["num_of_tiles"] += 1
-        players[player2]["num_of_tiles"] -= 1
+        for i in range(len(ply[player2]["coordinates"]) + len(ply[player1]["coordinates"])):
+            try:
+                my_list = list(ply[player2]["coordinates"])
+                my_list.remove(tile_attacked)
+                ply[player2]["coordinates"][0] = tuple(my_list)
+                list2 = list(ply[player1]["coordinates"])
+                list2.append(tile_attacked)
+                ply[player1]["coordinates"][0] = tuple(list2)
+                ply[player1]["num_of_tiles"][0] += 1
+                ply[player2]["num_of_tiles"][0] -= 1
+            except ValueError:
+                pass
     else:
-        players[player1]["coordinates"].remove(tile_attacked)
-        players[player2]["coordinates"].append(tile_attacked)
-        players[player2]["num_of_tiles"] += 1
-        players[player1]["num_of_tiles"] -= 1    
+        for i in range(len(ply[player2]["coordinates"]) + len(ply[player1]["coordinates"])):
+            try:
+                my_list = list(ply[player1]["coordinates"])
+                my_list.remove(tile_attacked)
+                ply[player1]["coordinates"][0] = tuple(my_list)
+                list2 = list(ply[player2]["coordinates"])
+                list2.append(tile_attacked)
+                ply[player2]["coordinates"][0] = tuple(list2)
+                ply[player2]["num_of_tiles"][0] += 1
+                ply[player1]["num_of_tiles"][0] -= 1
+            except ValueError:
+                pass
+    print(ply, "change of owner")
+    return players
