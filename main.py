@@ -7,12 +7,12 @@
 import pygame
 import random
 import time
-
+from strategy_functions import border_tiles_func
 
 pygame.init()
 
 # map logic and free tiles logic
-map_size = 5
+map_size = 2
 pixel_size = 50
 map = []
 map_free_tiles = map_size*map_size
@@ -105,30 +105,8 @@ def battle_logic():
             power1 = players[player1]["num_of_tiles"]
             power2 = players[player2]["num_of_tiles"]
             border_tiles = []
-            potential_tiles1 = []
-            potential_tiles2 = []
-
-            # Needs to be completed, currently its only a basic idea
-            for j in range(len(players[player1]["coordinates"])):
-                potential_tiles1.append((players[player1]["coordinates"][j][0]+1, players[i]["coordinates"][j][1]))
-                potential_tiles1.append((players[player1]["coordinates"][j][0]-1, players[i]["coordinates"][j][1]))
-                potential_tiles1.append((players[player1]["coordinates"][j][0], players[i]["coordinates"][j][1]+1))
-                potential_tiles1.append((players[player1]["coordinates"][j][0], players[i]["coordinates"][j][1]-1))
-            for k in range(len(players[player2]["coordinates"])):
-                potential_tiles2.append((players[player2]["coordinates"][k][0]+1, players[i]["coordinates"][k][1]))
-                potential_tiles2.append((players[i]["coordinates"][k][0]-1, players[i]["coordinates"][k][1]))
-                potential_tiles2.append((players[i]["coordinates"][k][0], players[i]["coordinates"][k][1]+1))
-                potential_tiles2.append((players[i]["coordinates"][k][0], players[i]["coordinates"][k][1]-1))
-            #for i in potential_tiles1:
-                #if i in player2["coordinates"]:
-                    #border_tiles.append(i)
-            print(potential_tiles1)
-            #for j in potential_tiles2:
-                #if j in player1["coordinates"]:
-                    #border_tiles.append(j)
-            print(potential_tiles2)
+            border_tiles.append(border_tiles_func(players, player1, player2)) 
             print(border_tiles)
-
 
 # peace logic function, removes players from wars list, currently peaces out with all other players 
 # eventualy only one war will be peaced out, working on it
