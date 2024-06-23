@@ -12,7 +12,7 @@ from strategy_functions import border_tiles_func, battle_logic_core, change_of_o
 pygame.init()
 
 # map logic and free tiles logic
-map_size = 10
+map_size = 2
 pixel_size = 50
 map = []
 map_free_tiles = map_size*map_size
@@ -26,8 +26,7 @@ for i in range(map_size):
         index_version_of_free_tiles.append((i, j))
 
 # diplomacy variables
-wars = []        
-players_in_war = []
+wars = []
 
 # Screen setings
 screen = pygame.display.set_mode((map_size*pixel_size+map_size*pixel_size/10, map_size*pixel_size))
@@ -52,7 +51,6 @@ for i in range(num_players):
     
 def reset_game():
     pass
-
 
 # expansion logic function, finds free tiles around all the player controled ones, currently only in 4 directions, will be expanded to 8 once the game is more advanced
 def expandsion_initial():
@@ -99,10 +97,9 @@ def battle_logic():
         pass
     else:
         for i in range(len(wars)):
+            global players
             player1 = wars[i][0]
             player2 = wars[i][1]
-            players_in_war.append(player1)
-            players_in_war.append(player2)
             power1 = players[player1]["num_of_tiles"]
             power2 = players[player2]["num_of_tiles"]
             tile_attacked = []
@@ -111,8 +108,9 @@ def battle_logic():
             border_tiles.append(border_tiles_func(players, player1, player2))
             tile_attacked.append(random.choice(border_tiles[0]))
             winner_of_battle.append(battle_logic_core(power1, power2, player1, player2))
-            print(winner_of_battle)
-            change_of_owner(winner_of_battle, tile_attacked, players, player1, player2)
+            print("--------------------")
+            players = change_of_owner(winner_of_battle, tile_attacked, players, player1, player2)
+            print(players)
             border_tiles.clear()
 
 # peace logic function, removes players from wars list, currently peaces out with all other players 
@@ -125,7 +123,6 @@ def peace_logic(player):
     m = 0
     for i in possible_peace:
         wars.pop(i-m)
-        players_in_war.remove(player)
         m += 1
     
 
@@ -252,10 +249,6 @@ while running:
 
     pygame.display.update()
 
-
-
-
-pygame.quit()
 
 
 
