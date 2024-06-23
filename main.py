@@ -3,16 +3,16 @@
 # Final core function will be added and thats the battle function, it will use chances to determine who would win
 
 
-
+import threading
 import pygame
 import random
 import time
-from strategy_functions import border_tiles_func
+from strategy_functions import border_tiles_func, battle_logic_core, change_of_owner
 
 pygame.init()
 
 # map logic and free tiles logic
-map_size = 2
+map_size = 10
 pixel_size = 50
 map = []
 map_free_tiles = map_size*map_size
@@ -27,6 +27,7 @@ for i in range(map_size):
 
 # diplomacy variables
 wars = []        
+players_in_war = []
 
 # Screen setings
 screen = pygame.display.set_mode((map_size*pixel_size+map_size*pixel_size/10, map_size*pixel_size))
@@ -92,6 +93,7 @@ def remove_occupied_tiles():
             pass
 
 # battle logic function, decides how the war will go, it uses the power of players to determine the chances of wining in each battle for each tile
+# specific functions are in strategy_functions.py
 def battle_logic():
     if len(wars) == 0:
         pass
@@ -99,14 +101,19 @@ def battle_logic():
         for i in range(len(wars)):
             player1 = wars[i][0]
             player2 = wars[i][1]
-            players_in_war = []
             players_in_war.append(player1)
             players_in_war.append(player2)
             power1 = players[player1]["num_of_tiles"]
             power2 = players[player2]["num_of_tiles"]
+            tile_attacked = []
             border_tiles = []
-            border_tiles.append(border_tiles_func(players, player1, player2)) 
-            print(border_tiles)
+            winner_of_battle = []
+            border_tiles.append(border_tiles_func(players, player1, player2))
+            tile_attacked.append(random.choice(border_tiles[0]))
+            winner_of_battle.append(battle_logic_core(power1, power2, player1, player2))
+            print(winner_of_battle)
+            change_of_owner(winner_of_battle, tile_attacked, players, player1, player2)
+            border_tiles.clear()
 
 # peace logic function, removes players from wars list, currently peaces out with all other players 
 # eventualy only one war will be peaced out, working on it
@@ -118,6 +125,7 @@ def peace_logic(player):
     m = 0
     for i in possible_peace:
         wars.pop(i-m)
+        players_in_war.remove(player)
         m += 1
     
 
@@ -152,12 +160,30 @@ def diplomacy_logic():
             war_logic(i)
         else:
             pass
+
+ # Drawing players and player controlled tiles, now fully working!!!    
+def drawing_players():
+    while running:
+        for i in range(num_players):
+            for j in range(len(players[i]["coordinates"])): 
+                pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][j][0]*pixel_size, players[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
     
+# Map logic function, manages the diplomacy and battle logic
+def map_logic():
+    while running:
+        diplomacy_logic()
+        battle_logic()
+        time.sleep(0.4)
+        
+
 
 running = True
 initial_check = True
+Threads_started = False
 
-
+# trying to implement multithreading, maybe it will help with the performance
+thread1 = threading.Thread(target=drawing_players)
+thread2 = threading.Thread(target=map_logic)
 
 # Main loop
 while running:
@@ -205,23 +231,31 @@ while running:
         else:
             initial_check = False
 
-    # Drawing players and player controlled tiles, now fully working!!!
-    for i in range(num_players):
-        for j in range(len(players[i]["coordinates"])): 
-            pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][j][0]*pixel_size, players[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
-            
+    # initial drawing of players, threading had some issues with this part, therefore it is implemented like this
+    if Threads_started == False:
+        for i in range(num_players):
+            for j in range(len(players[i]["coordinates"])): 
+                pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][j][0]*pixel_size, players[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
 
     # peacefull expansion logic
     if map_free_tiles > 0:  
         expandsion_initial()
+    # starting the threads
+    elif Threads_started == False and map_free_tiles == 0:
+        thread1.start()
+        thread2.start()
+        Threads_started = True
     else:
-        diplomacy_logic()
-        battle_logic()
+        pass
 
     time.sleep(0.4)
-    
+
     pygame.display.update()
 
+
+
+
+pygame.quit()
 
 
 
