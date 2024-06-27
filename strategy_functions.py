@@ -44,35 +44,44 @@ def battle_logic_core(power1, power2, player1, player2):
     else:
         return player1
     
-# Function to change the owner of the tile after the battle ends
+# Function to change the owner of the tile after the battle
 def change_of_owner(winner_of_battle, tile_attacked, players, player1, player2):
-    ply = players
-    print(ply)
-    if winner_of_battle[0] == player1:
-        for i in range(len(ply[player2]["coordinates"]) + len(ply[player1]["coordinates"])):
-            try:
-                my_list = list(ply[player2]["coordinates"])
-                my_list.remove(tile_attacked)
-                ply[player2]["coordinates"][0] = tuple(my_list)
-                list2 = list(ply[player1]["coordinates"])
-                list2.append(tile_attacked)
-                ply[player1]["coordinates"][0] = tuple(list2)
-                ply[player1]["num_of_tiles"][0] += 1
-                ply[player2]["num_of_tiles"][0] -= 1
-            except ValueError:
+    ply = players.copy()
+
+    if winner_of_battle == player1:
+        # Remove tile from player2's coordinates
+        for i in range(ply[player2]["num_of_tiles"]):
+            if ply[player2]["coordinates"][i] == tile_attacked:
+                ply[player2]["coordinates"] = tuple(
+                    coord for coord in ply[player2]["coordinates"] if coord != tile_attacked
+                )
+
+            # Add tile to player1's coordinates
+                ply[player1]["coordinates"] = tuple(
+                    list(ply[player1]["coordinates"]) + [tile_attacked]
+                )
+
+            # Update the number of tiles
+                ply[player1]["num_of_tiles"] += 1
+                ply[player2]["num_of_tiles"] -= 1
+            else:
                 pass
     else:
-        for i in range(len(ply[player2]["coordinates"]) + len(ply[player1]["coordinates"])):
-            try:
-                my_list = list(ply[player1]["coordinates"])
-                my_list.remove(tile_attacked)
-                ply[player1]["coordinates"][0] = tuple(my_list)
-                list2 = list(ply[player2]["coordinates"])
-                list2.append(tile_attacked)
-                ply[player2]["coordinates"][0] = tuple(list2)
-                ply[player2]["num_of_tiles"][0] += 1
-                ply[player1]["num_of_tiles"][0] -= 1
-            except ValueError:
-                pass
-    print(ply, "change of owner")
-    return players
+        # Remove tile from player1's coordinates
+        if tile_attacked in ply[player1]["coordinates"]:
+            ply[player1]["coordinates"] = tuple(
+                coord for coord in ply[player1]["coordinates"] if coord != tile_attacked
+            )
+
+            # Add tile to player2's coordinates
+            ply[player2]["coordinates"] = tuple(
+                list(ply[player2]["coordinates"]) + [tile_attacked]
+            )
+
+            # Update the number of tiles
+            ply[player2]["num_of_tiles"] += 1
+            ply[player1]["num_of_tiles"] -= 1
+        else:
+            pass
+
+    return ply
