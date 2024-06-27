@@ -1,6 +1,6 @@
 # futere updates will adress and will potentialy include multicoring as current one thread is starting to be not enough
 # Also peace function will have to be advanced, currently its only temporary solution
-# Final core function will be added and thats the battle function, it will use chances to determine who would win
+
 
 
 import threading
@@ -12,8 +12,8 @@ from strategy_functions import border_tiles_func, battle_logic_core, change_of_o
 pygame.init()
 
 # map logic and free tiles logic
-map_size = 2
-pixel_size = 50
+map_size = 40
+pixel_size = 10
 map = []
 map_free_tiles = map_size*map_size
 map_occupied_tiles = []
@@ -28,6 +28,9 @@ for i in range(map_size):
 # diplomacy variables
 wars = []
 
+# game speed
+game_speed = 0.05
+
 # Screen setings
 screen = pygame.display.set_mode((map_size*pixel_size+map_size*pixel_size/10, map_size*pixel_size))
 pygame.display.set_caption("Pixel Strategy")
@@ -36,7 +39,7 @@ controlwindowsize = map_size*pixel_size/10
 
 # creating players and setting their initial position
 players = []
-num_players = 2
+num_players = 10
 for i in range(num_players):
     playercoords1 = (random.randint(0, map_size-1), random.randint(0, map_size-1))
     map_occupied_tiles.append((playercoords1 ))   
@@ -93,25 +96,28 @@ def remove_occupied_tiles():
 # battle logic function, decides how the war will go, it uses the power of players to determine the chances of wining in each battle for each tile
 # specific functions are in strategy_functions.py
 def battle_logic():
+    global players
     if len(wars) == 0:
         pass
     else:
         for i in range(len(wars)):
-            global players
             player1 = wars[i][0]
             player2 = wars[i][1]
             power1 = players[player1]["num_of_tiles"]
             power2 = players[player2]["num_of_tiles"]
             tile_attacked = []
             border_tiles = []
-            winner_of_battle = []
+            winner_of_battle = 0
             border_tiles.append(border_tiles_func(players, player1, player2))
-            tile_attacked.append(random.choice(border_tiles[0]))
-            winner_of_battle.append(battle_logic_core(power1, power2, player1, player2))
-            print("--------------------")
-            players = change_of_owner(winner_of_battle, tile_attacked, players, player1, player2)
-            print(players)
-            border_tiles.clear()
+            try:
+                tile_attacked.append(random.choice(border_tiles[0]))
+                winner_of_battle= battle_logic_core(power1, power2, player1, player2)
+                players = change_of_owner(winner_of_battle, tile_attacked[0], players, player1, player2)
+                border_tiles.clear()
+                tile_attacked.clear()
+            except IndexError:
+                pass
+           
 
 # peace logic function, removes players from wars list, currently peaces out with all other players 
 # eventualy only one war will be peaced out, working on it
@@ -136,10 +142,10 @@ def war_logic(player):
 
 # diplomacy logic function, decides what will happen between players
 def diplomacy_logic():
-    chance_of_nothing = 10
+    chance_of_nothing = 5
     diplomacy_options = []
-    chance_of_peace = 3
-    chance_of_war = 5
+    chance_of_peace = 1
+    chance_of_war = 3
     for i in range(chance_of_nothing):
         diplomacy_options.append("nothing")
 
@@ -162,15 +168,17 @@ def diplomacy_logic():
 def drawing_players():
     while running:
         for i in range(num_players):
-            for j in range(len(players[i]["coordinates"])): 
-                pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][j][0]*pixel_size, players[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
-    
+            for j in range(len(players[i]["coordinates"])):
+                try:
+                    pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][j][0]*pixel_size, players[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
+                except IndexError:
+                    pass
 # Map logic function, manages the diplomacy and battle logic
 def map_logic():
     while running:
         diplomacy_logic()
         battle_logic()
-        time.sleep(0.4)
+        time.sleep(game_speed)
         
 
 
@@ -245,7 +253,7 @@ while running:
     else:
         pass
 
-    time.sleep(0.4)
+    time.sleep(game_speed)
 
     pygame.display.update()
 
