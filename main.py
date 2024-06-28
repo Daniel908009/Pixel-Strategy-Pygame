@@ -2,18 +2,18 @@
 # Also peace function will have to be advanced, currently its only temporary solution
 
 
-
+import multiprocessing
 import threading
 import pygame
 import random
 import time
-from strategy_functions import map_logic, remove_occupied_tiles, expandsion_initial
+from strategy_functions import map_logic, remove_occupied_tiles, expandsion_initial, send_important_data, stop_all_functions
 
 pygame.init()
 
 # map logic and free tiles logic
-map_size = 40
-pixel_size = 10
+map_size = 20
+pixel_size = 40
 map = []
 map_free_tiles = map_size*map_size
 map_occupied_tiles = []
@@ -29,7 +29,7 @@ for i in range(map_size):
 wars = []
 
 # game speed
-game_speed = 0.05
+game_speed = 0.09
 
 # Screen setings
 screen = pygame.display.set_mode((map_size*pixel_size+map_size*pixel_size/10, map_size*pixel_size))
@@ -71,10 +71,15 @@ def reset_game():
 running = True
 initial_check = True
 Threads_started = False
+sended = False
 
 # trying to implement multithreading, maybe it will help with the performance
 thread1 = threading.Thread(target=drawing_players)
-thread2 = threading.Thread(target=map_logic, args=(running, game_speed, num_players))
+thread2 = threading.Thread(target=map_logic, args=(game_speed, num_players))
+
+# proceses, currently under development
+# p1 = multiprocessing.Process(target=drawing_players)
+# p2 = multiprocessing.Process(target=map_logic, args=(game_speed, num_players))
 
 # Main loop
 while running:
@@ -88,6 +93,7 @@ while running:
     #event checking
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            stop_all_functions()
             running = False
         elif event.type == pygame.KEYDOWN:
             if event.type == pygame.r:
@@ -129,8 +135,11 @@ while running:
                 pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][j][0]*pixel_size, players[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
 
     # peacefull expansion logic
-    if map_free_tiles > 0:  
-        map_free_tiles = expandsion_initial(num_players,map_free_tiles, map_occupied_tiles, index_version_of_free_tiles)
+    if map_free_tiles > 0:
+        if sended == False:
+            send_important_data(players, num_players, pixel_size, screen)
+            sended = True
+        map_free_tiles = expandsion_initial(num_players,map_free_tiles, index_version_of_free_tiles)
         
     # starting the threads
     elif Threads_started == False and map_free_tiles == 0:
@@ -148,3 +157,8 @@ while running:
 
 
 pygame.quit()
+try:
+    thread1.join()
+    thread2.join()
+except:
+    pass
