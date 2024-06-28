@@ -7,7 +7,7 @@ import threading
 import pygame
 import random
 import time
-from strategy_functions import border_tiles_func, battle_logic_core, change_of_owner
+from strategy_functions import map_logic, remove_occupied_tiles, expandsion_initial
 
 pygame.init()
 
@@ -39,6 +39,7 @@ controlwindowsize = map_size*pixel_size/10
 
 # creating players and setting their initial position
 players = []
+players_actual = []
 num_players = 10
 for i in range(num_players):
     playercoords1 = (random.randint(0, map_size-1), random.randint(0, map_size-1))
@@ -50,136 +51,21 @@ for i in range(num_players):
             "num_of_tiles": 1
         }
     )
-
     
-def reset_game():
-    pass
-
-# expansion logic function, finds free tiles around all the player controled ones, currently only in 4 directions, will be expanded to 8 once the game is more advanced
-def expandsion_initial():
-    global map_free_tiles, map_occupied_tiles, index_version_of_free_tiles
-    potential_tiles = []
-    free_potential_tiles = []
-    for i in range(num_players):
-        for j in range(len(players[i]["coordinates"])):
-            potential_tiles.append((players[i]["coordinates"][j][0]+1, players[i]["coordinates"][j][1]))
-            potential_tiles.append((players[i]["coordinates"][j][0]-1, players[i]["coordinates"][j][1]))
-            potential_tiles.append((players[i]["coordinates"][j][0], players[i]["coordinates"][j][1]+1))
-            potential_tiles.append((players[i]["coordinates"][j][0], players[i]["coordinates"][j][1]-1))
-        list1 = potential_tiles
-        list2 = index_version_of_free_tiles
-        free_potential_tiles = [value for value in list1 if value in list2]
-        try:
-            random_tile = random.choice(free_potential_tiles)
-            map_free_tiles -= 1
-            index_version_of_free_tiles.remove(random_tile)
-            players[i]["coordinates"].append(random_tile)
-            players[i]["num_of_tiles"] += 1
-            free_potential_tiles.clear()
-            potential_tiles.clear()
-        except IndexError:
-            pass
-
-
-        
-# removing occupied tiles from free tiles
-def remove_occupied_tiles():
-    global map_free_tiles, map_occupied_tiles, index_version_of_free_tiles
-    map_free_tiles -= num_players
-    for i in range(num_players):
-        map_occupied_tiles.append(players[i]["coordinates"][0])
-        try:
-            index_version_of_free_tiles.remove(players[i]["coordinates"][0])
-        except ValueError:
-            pass
-
-# battle logic function, decides how the war will go, it uses the power of players to determine the chances of wining in each battle for each tile
-# specific functions are in strategy_functions.py
-def battle_logic():
-    global players
-    if len(wars) == 0:
-        pass
-    else:
-        for i in range(len(wars)):
-            player1 = wars[i][0]
-            player2 = wars[i][1]
-            power1 = players[player1]["num_of_tiles"]
-            power2 = players[player2]["num_of_tiles"]
-            tile_attacked = []
-            border_tiles = []
-            winner_of_battle = 0
-            border_tiles.append(border_tiles_func(players, player1, player2))
-            try:
-                tile_attacked.append(random.choice(border_tiles[0]))
-                winner_of_battle= battle_logic_core(power1, power2, player1, player2)
-                players = change_of_owner(winner_of_battle, tile_attacked[0], players, player1, player2)
-                border_tiles.clear()
-                tile_attacked.clear()
-            except IndexError:
-                pass
-           
-
-# peace logic function, removes players from wars list, currently peaces out with all other players 
-# eventualy only one war will be peaced out, working on it
-def peace_logic(player):
-    possible_peace = []
-    for i in range(len(wars)):
-        if wars[i][0] == player or wars[i][1] == player:
-            possible_peace.append(i)
-    m = 0
-    for i in possible_peace:
-        wars.pop(i-m)
-        m += 1
-    
-
-# war logic function, decides how will war be implemented between 2 players
-def war_logic(player):
-    enemy = random.randint(0, num_players-1)
-    if enemy == player or (player, enemy) in wars or (enemy, player) in wars:
-        pass
-    else:
-        wars.append((player, enemy))
-
-# diplomacy logic function, decides what will happen between players
-def diplomacy_logic():
-    chance_of_nothing = 5
-    diplomacy_options = []
-    chance_of_peace = 1
-    chance_of_war = 3
-    for i in range(chance_of_nothing):
-        diplomacy_options.append("nothing")
-
-    for j in range(chance_of_peace):
-        diplomacy_options.append("peace")
-    
-    for k in range(chance_of_war):
-        diplomacy_options.append("war")
-    
-    for i in range(num_players):
-        choice = random.choice(diplomacy_options)
-        if choice == "peace":
-            peace_logic(i)
-        elif choice == "war":
-            war_logic(i)
-        else:
-            pass
-
- # Drawing players and player controlled tiles, now fully working!!!    
+# drawing players and player controlled tiles, this cant be done in the functions file as pygame doesnt support this
 def drawing_players():
+    global running, num_players, players, screen, pixel_size
+    players_actual = players
     while running:
         for i in range(num_players):
-            for j in range(len(players[i]["coordinates"])):
+            for j in range(len(players_actual[i]["coordinates"])):
                 try:
-                    pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][j][0]*pixel_size, players[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
+                    pygame.draw.rect(screen, players_actual[i]["color"], (players_actual[i]["coordinates"][j][0]*pixel_size, players_actual[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
                 except IndexError:
                     pass
-# Map logic function, manages the diplomacy and battle logic
-def map_logic():
-    while running:
-        diplomacy_logic()
-        battle_logic()
-        time.sleep(game_speed)
-        
+
+def reset_game():
+    pass
 
 
 running = True
@@ -188,7 +74,7 @@ Threads_started = False
 
 # trying to implement multithreading, maybe it will help with the performance
 thread1 = threading.Thread(target=drawing_players)
-thread2 = threading.Thread(target=map_logic)
+thread2 = threading.Thread(target=map_logic, args=(running, game_speed, num_players))
 
 # Main loop
 while running:
@@ -228,7 +114,7 @@ while running:
                     list_of_similar.clear()
 
     # removing occupied tiles from free tiles
-        remove_occupied_tiles()
+        map_free_tiles = remove_occupied_tiles(players, num_players, map_free_tiles, map_occupied_tiles, index_version_of_free_tiles)
          
     #check is done
         if needs_recheck:
@@ -244,7 +130,8 @@ while running:
 
     # peacefull expansion logic
     if map_free_tiles > 0:  
-        expandsion_initial()
+        map_free_tiles = expandsion_initial(num_players,map_free_tiles, map_occupied_tiles, index_version_of_free_tiles)
+        
     # starting the threads
     elif Threads_started == False and map_free_tiles == 0:
         thread1.start()
