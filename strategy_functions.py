@@ -3,7 +3,6 @@
 #necessary imports
 import random
 import time
-import pygame
 
 # global variables
 players_actual = []
@@ -45,18 +44,19 @@ def border_tiles_func(player1, player2):
     for i in potential_tiles1:
         for j in range(len(players_actual[player2]["coordinates"])):
             if i == players_actual[player2]["coordinates"][j]:
-                #if is_encircled(i, player1):
-                 #   for g in range(10):
-                  #      border_tiles.append(i)
-                #else:
+                if is_encircled(i, player1):
+                    for g in range(2):
+                        border_tiles.append(i)
+                        print(border_tiles)
+                else:
                     border_tiles.append(i)
     for i in potential_tiles2:
         for j in range(len(players_actual[player1]["coordinates"])):
             if i == players_actual[player1]["coordinates"][j]:
-                #if is_encircled(i, player2):
-                 #   for h in range(10):
-                  #      border_tiles.append(i)
-                #else:
+                if is_encircled(i, player2):
+                    for h in range(10):
+                        border_tiles.append(i)
+                else:
                     border_tiles.append(i)
     
     potential_tiles1.clear()
@@ -207,7 +207,6 @@ def remove_occupied_tiles(players, num_players, map_free_tiles, map_occupied_til
     return map_free_tiles
 
 # expansion logic function, finds free tiles around all the player controled ones
-# currently only in 4 directions, will be expanded to 8 once the game is more advanced
 def expandsion_initial(num_players,map_free_tiles, index_version_of_free_tiles):
     global players_actual
     potential_tiles = []
@@ -236,6 +235,8 @@ def expandsion_initial(num_players,map_free_tiles, index_version_of_free_tiles):
             players_actual[i]["num_of_tiles"] += 1
             free_potential_tiles.clear()
             potential_tiles.clear()
+            if map_free_tiles == 0:
+                return map_free_tiles
         except IndexError:
             pass
     return map_free_tiles
@@ -253,11 +254,22 @@ def is_encircled(tile, player_controling):
     bordering_tiles.append((tile[0]-1, tile[1]+1))
     bordering_tiles.append((tile[0]+1, tile[1]-1))
     bordering_tiles.append((tile[0]-1, tile[1]-1))
+    answer = 0
     for i in bordering_tiles:
         for j in range(len(players_actual[player_controling]["coordinates"])):
+            print(players_actual[player_controling]["coordinates"][j])
+            print(i)
             if players_actual[player_controling]["coordinates"][j] == i:
-                return False
-    return True
+                answer += 1
+            else:
+                pass
+                
+    if answer == 0:
+        return False
+    else:
+        return True
+
+    
 
 
 # stopping all functions in case of exiting the game
