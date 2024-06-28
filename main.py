@@ -9,19 +9,13 @@ from strategy_functions import map_logic, remove_occupied_tiles, expandsion_init
 pygame.init()
 
 # map logic and free tiles logic
-map_size = 10
+map_size = 20
 pixel_size = 20
 ratio = (1, 2)
 map = []
-map_free_tiles = map_size*map_size
 map_occupied_tiles = []
 index_version_of_free_tiles = []
-for i in range(map_size):
-    for j in range(map_size):
-        map.append((0, 0))
-for i in range(map_size):
-    for j in range(map_size):
-        index_version_of_free_tiles.append((i, j))
+
 
 # diplomacy variables
 wars = []
@@ -30,17 +24,26 @@ wars = []
 game_speed = 0.09
 
 # Screen setings
-screen = pygame.display.set_mode((map_size*pixel_size+map_size*pixel_size/10, map_size*pixel_size))
+screen = pygame.display.set_mode(((map_size*pixel_size+map_size*pixel_size/10)*ratio[1], (map_size*pixel_size)*ratio[0]))
 pygame.display.set_caption("Pixel Strategy")
 pygame.display.set_icon(pygame.image.load("Pixel_strategy/strategy.png"))
-controlwindowsize = map_size*pixel_size/10
+controlwindowsize = (map_size*pixel_size/10)*ratio[1]
+
+# creating map and free tiles
+map_free_tiles = (map_size*ratio[0])*(map_size*ratio[1])
+for i in range(map_size*ratio[1]):
+    for j in range(map_size*ratio[0]):
+        map.append((0, 0))
+for i in range(map_size*ratio[1]):
+    for j in range(map_size*ratio[0]):
+        index_version_of_free_tiles.append((i, j))
 
 # creating players and setting their initial position
 players = []
 players_actual = []
 num_players = 10
 for i in range(num_players):
-    playercoords1 = (random.randint(0, map_size-1), random.randint(0, map_size-1))
+    playercoords1 = (random.randint(0, (map_size-1)*ratio[1]), random.randint(0, (map_size-1)*ratio[0]))
     map_occupied_tiles.append((playercoords1 ))   
     players.append(
         {
@@ -83,7 +86,7 @@ while running:
     screen.fill((255, 255, 255))
 
     #control screen color and size
-    pygame.draw.rect(screen, (50, 50, 50), (map_size*pixel_size, 0, controlwindowsize, map_size*pixel_size))
+    pygame.draw.rect(screen, (50, 50, 50), ((map_size*pixel_size)*ratio[1], 0, controlwindowsize, (map_size*pixel_size)*ratio[0] ))
 
     #event checking
     for event in pygame.event.get():
