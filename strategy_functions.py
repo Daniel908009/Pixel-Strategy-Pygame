@@ -47,7 +47,6 @@ def border_tiles_func(player1, player2):
                 if is_encircled(i, player1):
                     for g in range(2):
                         border_tiles.append(i)
-                        print(border_tiles)
                 else:
                     border_tiles.append(i)
     for i in potential_tiles2:
@@ -230,13 +229,14 @@ def expandsion_initial(num_players,map_free_tiles, index_version_of_free_tiles):
         try:
             random_tile = random.choice(free_potential_tiles)
             index_version_of_free_tiles.remove(random_tile)
-            map_free_tiles -= 1
-            players_actual[i]["coordinates"].append(random_tile)
-            players_actual[i]["num_of_tiles"] += 1
-            free_potential_tiles.clear()
-            potential_tiles.clear()
-            if map_free_tiles == 0:
-                return map_free_tiles
+            if random_tile != None:
+                map_free_tiles -= 1
+                players_actual[i]["coordinates"].append(random_tile)
+                players_actual[i]["num_of_tiles"] += 1
+                free_potential_tiles.clear()
+                potential_tiles.clear()
+                if map_free_tiles == 0:
+                    return map_free_tiles
         except IndexError:
             pass
     return map_free_tiles
@@ -257,8 +257,6 @@ def is_encircled(tile, player_controling):
     answer = 0
     for i in bordering_tiles:
         for j in range(len(players_actual[player_controling]["coordinates"])):
-            print(players_actual[player_controling]["coordinates"][j])
-            print(i)
             if players_actual[player_controling]["coordinates"][j] == i:
                 answer += 1
             else:
