@@ -274,3 +274,8 @@ def is_encircled(tile, player_controling):
 def stop_all_functions():
     global running
     running = False
+
+# Function that basically starts all functions again after the game is reseted to initial state
+def start_all_functions():
+    global running
+    running = True
