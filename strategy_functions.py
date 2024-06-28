@@ -8,33 +8,56 @@ import pygame
 # global variables
 players_actual = []
 wars = []
+num_players = 0
+pixel_size = 0
+screen = None
+running = True
+
+# Function to receive important data from the main file
+def send_important_data(players, num_players0, pixel_size0, screen0):
+    global players_actual
+    players_actual = players
+    global num_players
+    num_players = num_players0
+    global pixel_size
+    pixel_size = pixel_size0
+    global screen
+    screen = screen0
 
 # Function to check if a player has some border tiles with another player and returning them
-def border_tiles_func(players, player1, player2):
+def border_tiles_func(player1, player2):
     potential_tiles1 = []
     potential_tiles2 = []
     border_tiles = []
     # Needs to be enhanced, currently only checks in 4 directions
-    for j in range(len(players[player1]["coordinates"])):
-        potential_tiles1.append((players[player1]["coordinates"][j][0]+1, players[player1]["coordinates"][j][1]))
-        potential_tiles1.append((players[player1]["coordinates"][j][0]-1, players[player1]["coordinates"][j][1]))
-        potential_tiles1.append((players[player1]["coordinates"][j][0], players[player1]["coordinates"][j][1]+1))
-        potential_tiles1.append((players[player1]["coordinates"][j][0], players[player1]["coordinates"][j][1]-1))
+    for j in range(len(players_actual[player1]["coordinates"])):
+        potential_tiles1.append((players_actual[player1]["coordinates"][j][0]+1, players_actual[player1]["coordinates"][j][1]))
+        potential_tiles1.append((players_actual[player1]["coordinates"][j][0]-1, players_actual[player1]["coordinates"][j][1]))
+        potential_tiles1.append((players_actual[player1]["coordinates"][j][0], players_actual[player1]["coordinates"][j][1]+1))
+        potential_tiles1.append((players_actual[player1]["coordinates"][j][0], players_actual[player1]["coordinates"][j][1]-1))
 
-    for k in range(len(players[player2]["coordinates"])):
-        potential_tiles2.append((players[player2]["coordinates"][k][0]+1, players[player2]["coordinates"][k][1]))
-        potential_tiles2.append((players[player2]["coordinates"][k][0]-1, players[player2]["coordinates"][k][1]))
-        potential_tiles2.append((players[player2]["coordinates"][k][0], players[player2]["coordinates"][k][1]+1))
-        potential_tiles2.append((players[player2]["coordinates"][k][0], players[player2]["coordinates"][k][1]-1))
+    for k in range(len(players_actual[player2]["coordinates"])):
+        potential_tiles2.append((players_actual[player2]["coordinates"][k][0]+1, players_actual[player2]["coordinates"][k][1]))
+        potential_tiles2.append((players_actual[player2]["coordinates"][k][0]-1, players_actual[player2]["coordinates"][k][1]))
+        potential_tiles2.append((players_actual[player2]["coordinates"][k][0], players_actual[player2]["coordinates"][k][1]+1))
+        potential_tiles2.append((players_actual[player2]["coordinates"][k][0], players_actual[player2]["coordinates"][k][1]-1))
 
     for i in potential_tiles1:
-        for j in range(len(players[player2]["coordinates"])):
-            if i == players[player2]["coordinates"][j]:
-                border_tiles.append(i)
+        for j in range(len(players_actual[player2]["coordinates"])):
+            if i == players_actual[player2]["coordinates"][j]:
+                #if is_encircled(i, player1):
+                 #   for g in range(10):
+                  #      border_tiles.append(i)
+                #else:
+                    border_tiles.append(i)
     for i in potential_tiles2:
-        for j in range(len(players[player1]["coordinates"])):
-            if i == players[player1]["coordinates"][j]:
-                border_tiles.append(i)
+        for j in range(len(players_actual[player1]["coordinates"])):
+            if i == players_actual[player1]["coordinates"][j]:
+                #if is_encircled(i, player2):
+                 #   for h in range(10):
+                  #      border_tiles.append(i)
+                #else:
+                    border_tiles.append(i)
     
     potential_tiles1.clear()
     potential_tiles2.clear()
@@ -52,9 +75,9 @@ def battle_logic_core(power1, power2, player1, player2):
 
 
 # Function to change the owner of the tile after the battle
-def change_of_owner(winner_of_battle, tile_attacked, players, player1, player2):
-    ply = players.copy()
-    print("change is about to happen")
+def change_of_owner(winner_of_battle, tile_attacked, player1, player2):
+    global players_actual
+    ply = players_actual.copy()
     if winner_of_battle == player1:
         # Remove tile from player2's coordinates
         for i in range(ply[player2]["num_of_tiles"]):
@@ -94,7 +117,7 @@ def change_of_owner(winner_of_battle, tile_attacked, players, player1, player2):
     return ply
 
 # Map logic function, manages the diplomacy and battle logic
-def map_logic(running, game_speed, num_players):
+def map_logic(game_speed, num_players):
     global wars
     while running:
         diplomacy_logic(num_players)
@@ -157,20 +180,16 @@ def battle_logic():
         for i in range(len(wars)):
             player1 = wars[i][0]
             player2 = wars[i][1]
-            print("battle is about to happen")
-            print(player1, player2)
-            print(players_actual[player1]["num_of_tiles"], players_actual[player2]["num_of_tiles"])
-
             power1 = players_actual[player1]["num_of_tiles"]
             power2 = players_actual[player2]["num_of_tiles"]
             tile_attacked = []
             border_tiles = []
             winner_of_battle = 0
-            border_tiles.append(border_tiles_func(players_actual, player1, player2))
+            border_tiles.append(border_tiles_func(player1, player2))
             try:
                 tile_attacked.append(random.choice(border_tiles[0]))
                 winner_of_battle= battle_logic_core(power1, power2, player1, player2)
-                players_actual = change_of_owner(winner_of_battle, tile_attacked[0], players_actual, player1, player2)
+                players_actual = change_of_owner(winner_of_battle, tile_attacked[0], player1, player2)
                 border_tiles.clear()
                 tile_attacked.clear()
             except IndexError:
@@ -187,16 +206,25 @@ def remove_occupied_tiles(players, num_players, map_free_tiles, map_occupied_til
             pass
     return map_free_tiles
 
-# expansion logic function, finds free tiles around all the player controled ones, currently only in 4 directions, will be expanded to 8 once the game is more advanced
-def expandsion_initial(num_players,map_free_tiles, map_occupied_tiles, index_version_of_free_tiles):
+# expansion logic function, finds free tiles around all the player controled ones
+# currently only in 4 directions, will be expanded to 8 once the game is more advanced
+def expandsion_initial(num_players,map_free_tiles, index_version_of_free_tiles):
+    global players_actual
     potential_tiles = []
     free_potential_tiles = []
     for i in range(num_players):
         for j in range(len(players_actual[i]["coordinates"])):
+            # 4 directions expansion (left, right, up, down)
             potential_tiles.append((players_actual[i]["coordinates"][j][0]+1, players_actual[i]["coordinates"][j][1]))
             potential_tiles.append((players_actual[i]["coordinates"][j][0]-1, players_actual[i]["coordinates"][j][1]))
             potential_tiles.append((players_actual[i]["coordinates"][j][0], players_actual[i]["coordinates"][j][1]+1))
             potential_tiles.append((players_actual[i]["coordinates"][j][0], players_actual[i]["coordinates"][j][1]-1))
+            # diagonal expansion (up-right, up-left, down-right, down-left)
+            potential_tiles.append((players_actual[i]["coordinates"][j][0]+1, players_actual[i]["coordinates"][j][1]+1))
+            potential_tiles.append((players_actual[i]["coordinates"][j][0]-1, players_actual[i]["coordinates"][j][1]+1))
+            potential_tiles.append((players_actual[i]["coordinates"][j][0]+1, players_actual[i]["coordinates"][j][1]-1))
+            potential_tiles.append((players_actual[i]["coordinates"][j][0]-1, players_actual[i]["coordinates"][j][1]-1))
+            
         list1 = potential_tiles
         list2 = index_version_of_free_tiles
         free_potential_tiles = [value for value in list1 if value in list2]
@@ -211,3 +239,28 @@ def expandsion_initial(num_players,map_free_tiles, map_occupied_tiles, index_ver
         except IndexError:
             pass
     return map_free_tiles
+
+# is encircled function, checks if a tile is encircled on all sides, if yes, than it has a higher chance of being attacked, this makes the map more pretty
+def is_encircled(tile, player_controling):
+    bordering_tiles = []
+    # 4 directions encirclement check (left, right, up, down)
+    bordering_tiles.append((tile[0]+1, tile[1]))
+    bordering_tiles.append((tile[0]-1, tile[1]))
+    bordering_tiles.append((tile[0], tile[1]+1))
+    bordering_tiles.append((tile[0], tile[1]-1))
+    # diagonal encirclement check (up-right, up-left, down-right, down-left)
+    bordering_tiles.append((tile[0]+1, tile[1]+1))
+    bordering_tiles.append((tile[0]-1, tile[1]+1))
+    bordering_tiles.append((tile[0]+1, tile[1]-1))
+    bordering_tiles.append((tile[0]-1, tile[1]-1))
+    for i in bordering_tiles:
+        for j in range(len(players_actual[player_controling]["coordinates"])):
+            if players_actual[player_controling]["coordinates"][j] == i:
+                return False
+    return True
+
+
+# stopping all functions in case of exiting the game
+def stop_all_functions():
+    global running
+    running = False
