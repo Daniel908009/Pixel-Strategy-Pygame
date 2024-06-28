@@ -1,8 +1,5 @@
-# futere updates will adress and will potentialy include multicoring as current one thread is starting to be not enough
-# Also peace function will have to be advanced, currently its only temporary solution
+# Description: Main file of the game, here the game logic is implemented
 
-
-import multiprocessing
 import threading
 import pygame
 import random
@@ -12,8 +9,9 @@ from strategy_functions import map_logic, remove_occupied_tiles, expandsion_init
 pygame.init()
 
 # map logic and free tiles logic
-map_size = 20
-pixel_size = 40
+map_size = 10
+pixel_size = 20
+ratio = (1, 2)
 map = []
 map_free_tiles = map_size*map_size
 map_occupied_tiles = []
@@ -72,14 +70,11 @@ running = True
 initial_check = True
 Threads_started = False
 sended = False
+just_once = True
 
 # trying to implement multithreading, maybe it will help with the performance
 thread1 = threading.Thread(target=drawing_players)
 thread2 = threading.Thread(target=map_logic, args=(game_speed, num_players))
-
-# proceses, currently under development
-# p1 = multiprocessing.Process(target=drawing_players)
-# p2 = multiprocessing.Process(target=map_logic, args=(game_speed, num_players))
 
 # Main loop
 while running:
@@ -120,8 +115,10 @@ while running:
                     list_of_similar.clear()
 
     # removing occupied tiles from free tiles
-        map_free_tiles = remove_occupied_tiles(players, num_players, map_free_tiles, map_occupied_tiles, index_version_of_free_tiles)
-         
+        if just_once:
+            map_free_tiles = remove_occupied_tiles(players, num_players, map_free_tiles, map_occupied_tiles, index_version_of_free_tiles)
+            just_once = False
+    
     #check is done
         if needs_recheck:
             initial_check = True
