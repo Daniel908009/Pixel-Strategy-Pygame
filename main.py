@@ -4,12 +4,12 @@ import threading
 import pygame
 import random
 import time
-from strategy_functions import map_logic, remove_occupied_tiles, expandsion_initial, send_important_data, stop_all_functions, start_all_functions
+from strategy_functions import map_logic, remove_occupied_tiles, expandsion_initial, send_important_data, stop_all_functions, start_all_functions, stop_thread
 
 pygame.init()
 
 # map logic and free tiles logic
-map_size = 30
+map_size = 28
 pixel_size = 20
 ratio = (1, 2)
 map = []
@@ -57,44 +57,59 @@ for i in range(num_players):
 def drawing_players():
     global running, num_players, players, screen, pixel_size
     players_actual = players
-    while running:
-        for i in range(num_players):
-            for j in range(len(players_actual[i]["coordinates"])):
-                try:
-                    pygame.draw.rect(screen, players_actual[i]["color"], (players_actual[i]["coordinates"][j][0]*pixel_size, players_actual[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
-                except IndexError:
+    while not_end:
+        while running:
+            try:
+                for i in range(num_players):
+                    for j in range(len(players_actual[i]["coordinates"])):
+                        try:
+                            pygame.draw.rect(screen, players_actual[i]["color"], (players_actual[i]["coordinates"][j][0]*pixel_size, players_actual[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
+                        except IndexError:
+                            pass
+            except IndexError:
                     pass
   
 # function for reseting the game and setting the initial values again, currently working only partially, threading has some issues with this part
 def reset_game():
+    global map_free_tiles, index_version_of_free_tiles, initial_check, just_once, Threads_started, sended, running, map_occupied_tiles
+    map_occupied_tiles.clear()
+    players.clear()
     print("reseting game")
     for i in range(num_players):
         playercoords1 = (random.randint(0, (map_size-1)*ratio[1]), random.randint(0, (map_size-1)*ratio[0]))
-        map_occupied_tiles.append((playercoords1 ))   
-        players[i] = {
+        map_occupied_tiles.append((playercoords1 ))
+        players.append(
+        {
             "color": (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
             "coordinates": [(playercoords1[0], playercoords1[1])],
             "num_of_tiles": 1
         }
-    global map_free_tiles, index_version_of_free_tiles, initial_check, just_once, Threads_started, sended, running
+        )
+        print (players[i])
     map_free_tiles = (map_size*ratio[0])*(map_size*ratio[1])
     index_version_of_free_tiles.clear()
     for i in range(map_size*ratio[1]):
         for j in range(map_size*ratio[0]):
             index_version_of_free_tiles.append((i, j))
+    print("first check")
     initial_check = True
     just_once = True
-    Threads_started = False
+    print("second check")
+    #Threads_started = False
     sended = False
     running = False
+    print("third check")
     stop_all_functions()
-    try:
-        thread1.join()
-        thread2.join()
-    except RuntimeError:
-        pass
+    print("fourth check")
+    #try:
+     #   thread1.join()
+      #  thread2.join()
+    #except RuntimeError:
+     #   pass
+    print("fifth check")
     time.sleep(0.1)
     running = True
+    print("sixth check")
     start_all_functions()
     print("game reseted")
 
@@ -104,6 +119,7 @@ initial_check = True
 Threads_started = False
 sended = False
 just_once = True
+not_end = True
 
 # trying to implement multithreading, maybe it will help with the performance
 thread1 = threading.Thread(target=drawing_players)
@@ -147,20 +163,24 @@ while running:
         needs_recheck = False
         for i in range(num_players):
             for j in range(num_players):
-                if i == j:
-                    pass
-                elif players[i]["coordinates"][0] == players[j]["coordinates"][0]:
-                    list_of_similar = []
-                    list_of_similar.append(i)
-                    list_of_similar.append(j)
-                    players[random.choice(list_of_similar)]["coordinates"][0] = (random.randint(0, map_size-1), random.randint(0, map_size-1))
-                    list_of_similar.clear()
+                try:
+                    if i == j:
+                        pass
+                    elif players[i]["coordinates"][0] == players[j]["coordinates"][0]:
+                        list_of_similar = []
+                        list_of_similar.append(i)
+                        list_of_similar.append(j)
+                        players[random.choice(list_of_similar)]["coordinates"][0] = (random.randint(0, map_size-1), random.randint(0, map_size-1))
+                        list_of_similar.clear()
+                        needs_recheck = True
+                    elif players[i]["color"] == players[j]["color"]:
+                        list_of_similar.append(i)
+                        list_of_similar.append(j)
+                        players[random.choice(list_of_similar)]["color"] = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+                        list_of_similar.clear()
+                        needs_recheck = True
+                except IndexError:
                     needs_recheck = True
-                elif players[i]["color"] == players[j]["color"]:
-                    list_of_similar.append(i)
-                    list_of_similar.append(j)
-                    players[random.choice(list_of_similar)]["color"] = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-                    list_of_similar.clear()
 
     # removing occupied tiles from free tiles
         if just_once:
@@ -202,6 +222,10 @@ while running:
 
 
 pygame.quit()
+stop_all_functions()
+not_end = False
+stop_thread()
+
 try:
     thread1.join()
     thread2.join()
