@@ -4,7 +4,7 @@ import threading
 import pygame
 import random
 import time
-from strategy_functions import map_logic, remove_occupied_tiles, expandsion_initial, send_important_data, stop_all_functions, start_all_functions, stop_thread
+from strategy_functions import map_logic, remove_occupied_tiles, expandsion_initial, send_important_data, stop_all_functions, start_all_functions, stop_thread, game_full_reset, reset_reset_game
 
 pygame.init()
 
@@ -71,10 +71,9 @@ def drawing_players():
   
 # function for reseting the game and setting the initial values again, currently working only partially, threading has some issues with this part
 def reset_game():
-    global map_free_tiles, index_version_of_free_tiles, initial_check, just_once, Threads_started, sended, running, map_occupied_tiles
+    global map_free_tiles, index_version_of_free_tiles, initial_check, just_once, Threads_started, sended, running, map_occupied_tiles, initial_expansion_done
     map_occupied_tiles.clear()
     players.clear()
-    print("reseting game")
     for i in range(num_players):
         playercoords1 = (random.randint(0, (map_size-1)*ratio[1]), random.randint(0, (map_size-1)*ratio[0]))
         map_occupied_tiles.append((playercoords1 ))
@@ -85,33 +84,22 @@ def reset_game():
             "num_of_tiles": 1
         }
         )
-        print (players[i])
     map_free_tiles = (map_size*ratio[0])*(map_size*ratio[1])
     index_version_of_free_tiles.clear()
     for i in range(map_size*ratio[1]):
         for j in range(map_size*ratio[0]):
             index_version_of_free_tiles.append((i, j))
-    print("first check")
     initial_check = True
     just_once = True
-    print("second check")
-    #Threads_started = False
     sended = False
     running = False
-    print("third check")
     stop_all_functions()
-    print("fourth check")
-    #try:
-     #   thread1.join()
-      #  thread2.join()
-    #except RuntimeError:
-     #   pass
-    print("fifth check")
     time.sleep(0.1)
     running = True
-    print("sixth check")
     start_all_functions()
-    print("game reseted")
+    game_full_reset()
+    initial_expansion_done = False
+
 
 
 running = True
@@ -120,6 +108,7 @@ Threads_started = False
 sended = False
 just_once = True
 not_end = True
+initial_expansion_done = False
 
 # trying to implement multithreading, maybe it will help with the performance
 thread1 = threading.Thread(target=drawing_players)
@@ -201,21 +190,27 @@ while running:
 
     # peacefull expansion logic
     if map_free_tiles > 0:
-        if sended == False:
-            send_important_data(players, num_players, pixel_size, screen)
-            sended = True
-        map_free_tiles = expandsion_initial(num_players,map_free_tiles, index_version_of_free_tiles)
-        
+        try:
+            if sended == False:
+                send_important_data(players, num_players, pixel_size, screen)
+                sended = True
+            map_free_tiles = expandsion_initial(num_players,map_free_tiles, index_version_of_free_tiles)
+            initial_expansion_done = True
+        except IndexError:
+            pass
+
     # starting the threads
     elif Threads_started == False and map_free_tiles == 0:
         thread1.start()
         thread2.start()
         Threads_started = True
     else:
-        pass
+        if initial_expansion_done:
+            reset_reset_game()
+        else:
+            pass        
 
     time.sleep(game_speed)
-
     pygame.display.update()
 
 
