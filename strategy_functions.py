@@ -11,6 +11,7 @@ num_players = 0
 pixel_size = 0
 screen = None
 running = True
+not_end = True
 
 # Function to receive important data from the main file
 def send_important_data(players, num_players0, pixel_size0, screen0):
@@ -118,10 +119,11 @@ def change_of_owner(winner_of_battle, tile_attacked, player1, player2):
 # Map logic function, manages the diplomacy and battle logic
 def map_logic(game_speed, num_players):
     global wars
-    while running:
-        diplomacy_logic(num_players)
-        battle_logic()
-        time.sleep(game_speed)
+    while not_end:
+        while running:
+            diplomacy_logic(num_players)
+            battle_logic()
+            time.sleep(game_speed)
 
 
 # diplomacy logic function, decides what will happen between players
@@ -176,30 +178,32 @@ def battle_logic():
     if len(wars) == 0:
         pass
     else:
-        for i in range(len(wars)):
-            player1 = wars[i][0]
-            player2 = wars[i][1]
-            power1 = players_actual[player1]["num_of_tiles"]
-            power2 = players_actual[player2]["num_of_tiles"]
-            tile_attacked = []
-            border_tiles = []
-            winner_of_battle = 0
-            border_tiles.append(border_tiles_func(player1, player2))
-            try:
-                tile_attacked.append(random.choice(border_tiles[0]))
-                winner_of_battle= battle_logic_core(power1, power2, player1, player2)
-                players_actual = change_of_owner(winner_of_battle, tile_attacked[0], player1, player2)
-                border_tiles.clear()
-                tile_attacked.clear()
-            except IndexError:
-                pass
-           
+        try:
+            for i in range(len(wars)):
+                player1 = wars[i][0]
+                player2 = wars[i][1]
+                power1 = players_actual[player1]["num_of_tiles"]
+                power2 = players_actual[player2]["num_of_tiles"]
+                tile_attacked = []
+                border_tiles = []
+                winner_of_battle = 0
+                border_tiles.append(border_tiles_func(player1, player2))
+                try:
+                    tile_attacked.append(random.choice(border_tiles[0]))
+                    winner_of_battle= battle_logic_core(power1, power2, player1, player2)
+                    players_actual = change_of_owner(winner_of_battle, tile_attacked[0], player1, player2)
+                    border_tiles.clear()
+                    tile_attacked.clear()
+                except IndexError:
+                    pass
+        except IndexError:
+            pass
 # removing occupied tiles from free tiles
 def remove_occupied_tiles(players, num_players, map_free_tiles, map_occupied_tiles, index_version_of_free_tiles):
     map_free_tiles -= num_players
     for i in range(num_players):
-        map_occupied_tiles.append(players[i]["coordinates"][0])
         try:
+            map_occupied_tiles.append(players[i]["coordinates"][0])
             index_version_of_free_tiles.remove(players[i]["coordinates"][0])
         except ValueError:
             pass
@@ -228,17 +232,20 @@ def expandsion_initial(num_players,map_free_tiles, index_version_of_free_tiles):
         free_potential_tiles = [value for value in list1 if value in list2]
         try:
             random_tile = random.choice(free_potential_tiles)
-            index_version_of_free_tiles.remove(random_tile)
+            list2.remove(random_tile)
             if random_tile != None:
                 map_free_tiles -= 1
+                print(players_actual[i])
                 players_actual[i]["coordinates"].append(random_tile)
                 players_actual[i]["num_of_tiles"] += 1
-                free_potential_tiles.clear()
-                potential_tiles.clear()
+                #free_potential_tiles.clear()
+                #potential_tiles.clear()
                 if map_free_tiles == 0:
                     return map_free_tiles
         except IndexError:
             pass
+        free_potential_tiles.clear()
+        potential_tiles.clear()
     return map_free_tiles
 
 # is encircled function, checks if a tile is encircled on all sides, if yes, than it has a higher chance of being attacked, this makes the map more pretty
@@ -273,9 +280,15 @@ def is_encircled(tile, player_controling):
 # stopping all functions in case of exiting the game
 def stop_all_functions():
     global running
+    players_actual.clear()
     running = False
 
 # Function that basically starts all functions again after the game is reseted to initial state
 def start_all_functions():
     global running
     running = True
+
+# Function to stop the thread
+def stop_thread():
+    global not_end
+    not_end = False
