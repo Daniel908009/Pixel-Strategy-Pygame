@@ -12,6 +12,7 @@ pixel_size = 0
 screen = None
 running = True
 not_end = True
+reset_game = False
 
 # Function to receive important data from the main file
 def send_important_data(players, num_players0, pixel_size0, screen0):
@@ -120,10 +121,13 @@ def change_of_owner(winner_of_battle, tile_attacked, player1, player2):
 def map_logic(game_speed, num_players):
     global wars
     while not_end:
-        while running:
-            diplomacy_logic(num_players)
-            battle_logic()
-            time.sleep(game_speed)
+        while reset_game == False:
+            while  running:
+                diplomacy_logic(num_players)
+                battle_logic()
+                time.sleep(game_speed)
+            time.sleep(0.1)
+        time.sleep(0.1)
 
 
 # diplomacy logic function, decides what will happen between players
@@ -211,7 +215,7 @@ def remove_occupied_tiles(players, num_players, map_free_tiles, map_occupied_til
 
 # expansion logic function, finds free tiles around all the player controled ones
 def expandsion_initial(num_players,map_free_tiles, index_version_of_free_tiles):
-    global players_actual
+    global players_actual, reset_game
     potential_tiles = []
     free_potential_tiles = []
     for i in range(num_players):
@@ -235,7 +239,6 @@ def expandsion_initial(num_players,map_free_tiles, index_version_of_free_tiles):
             list2.remove(random_tile)
             if random_tile != None:
                 map_free_tiles -= 1
-                print(players_actual[i])
                 players_actual[i]["coordinates"].append(random_tile)
                 players_actual[i]["num_of_tiles"] += 1
                 #free_potential_tiles.clear()
@@ -287,6 +290,16 @@ def stop_all_functions():
 def start_all_functions():
     global running
     running = True
+
+# function to control the game reseting
+def game_full_reset():
+    global reset_game
+    reset_game = True
+
+# function to reset the reset_game variable
+def reset_reset_game():
+    global reset_game
+    reset_game = False
 
 # Function to stop the thread
 def stop_thread():
