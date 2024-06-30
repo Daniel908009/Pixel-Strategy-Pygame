@@ -4,7 +4,7 @@ import threading
 import pygame
 import random
 import time
-from strategy_functions import map_logic, remove_occupied_tiles, expandsion_initial, send_important_data, stop_all_functions, start_all_functions, stop_thread, game_full_reset, reset_reset_game
+from strategy_functions import map_logic, remove_occupied_tiles, expandsion_initial, send_important_data, stop_all_functions, start_all_functions, stop_thread, game_full_reset, reset_reset_game, optimalization
 
 pygame.init()
 
@@ -70,6 +70,7 @@ def drawing_players():
                     pass
   
 # function for reseting the game and setting the initial values again, currently working only partially, threading has some issues with this part
+# only pain and suffering comes from this function, will be fixed once the game is fully functional and optimized
 def reset_game():
     global map_free_tiles, index_version_of_free_tiles, initial_check, just_once, Threads_started, sended, running, map_occupied_tiles, initial_expansion_done
     map_occupied_tiles.clear()
@@ -110,9 +111,10 @@ just_once = True
 not_end = True
 initial_expansion_done = False
 
-# trying to implement multithreading, maybe it will help with the performance
+# implemented multithreading, curently only the first two threads are working, the third one is under construction and testing, will be fixed soon though
 thread1 = threading.Thread(target=drawing_players)
 thread2 = threading.Thread(target=map_logic, args=(game_speed, num_players))
+thread3 = threading.Thread(target= optimalization)
 
 # Main loop
 while running:
@@ -192,8 +194,10 @@ while running:
     if map_free_tiles > 0:
         try:
             if sended == False:
-                send_important_data(players, num_players, pixel_size, screen)
+                send_important_data(players, num_players, pixel_size, screen, game_speed)
                 sended = True
+            #if thread3.is_alive() == False:
+                #thread3.start()
             map_free_tiles = expandsion_initial(num_players,map_free_tiles, index_version_of_free_tiles)
             initial_expansion_done = True
         except IndexError:
@@ -224,5 +228,6 @@ stop_thread()
 try:
     thread1.join()
     thread2.join()
+    #thread3.join()
 except:
     pass
