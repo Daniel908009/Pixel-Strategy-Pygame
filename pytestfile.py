@@ -68,32 +68,81 @@ def optimalization():
 
     while not_end:
         while running:
-            # filing the list with the coordinates of all the players
+            # filing the list with the coordinates of all the players, if coordinates are already in the list they will be ignored
             for i in range(num_players):
-                players_actual_tiles_of_interest.append(players_actual[i]["coordinates"])
-            # if the tile borders anything else than the player that controls it, it is of interest
-            for l in range(num_players):
-                for m in range(len(players_actual[l]["coordinates"])):
-                    tile = players_actual[l]["coordinates"][m]
-                    for k in range(players_actual[l]["num_of_tiles"]):
-                        if (tile[0]+1, tile[1]) not in players_actual[l]["coordinates"][k] or (tile[0]-1, tile[1]) not in players_actual[l]["coordinates"][k] or (tile[0], tile[1]+1) not in players_actual[l]["coordinates"][k] or (tile[0],tile[1]-1) not in players_actual[l]["coordinates"][k] or (tile[0]+1, tile[1]+1) not in players_actual[l]["coordinates"][k] or (tile[0]-1, tile[1]+1) not in players_actual[l]["coordinates"][k] or (tile[0]+1, tile[1]-1) not in players_actual[l]["coordinates"][k] or (tile[0]-1, tile[1]-1) not in players_actual[l]["coordinates"][k]:
-                            numberofruns += 1
-                    if numberofruns == len(players_actual[l]["coordinates"]):
-                        temp.append(tile)
-            for i in range(len(temp)):
+                for j in range(len(players_actual[i]["coordinates"])):
+                    if players_actual[i]["coordinates"][j] in players_actual_tiles_of_interest:
+                        pass
+                    else:
+                        players_actual_tiles_of_interest.append(players_actual[i]["coordinates"][j])
+            
+            
+            
+            
+            #for i in range(num_players):
+             #   for j in range(len(players_actual[i]["coordinates"])):
+              #      players_actual_tiles_of_interest.append(players_actual[i]["coordinates"][j])
+            
+            # if the tiles in players_actual_tiles_of_interest have a neighbour that is in other players tiles than they can stay, the tiles that do not will be removed
+            for i in range(num_players):
                 for j in range(len(players_actual_tiles_of_interest)):
-                    if temp[i] in players_actual_tiles_of_interest[j]:
-                        players_actual_tiles_of_interest.remove(players_actual_tiles_of_interest[j])
+                    if (players_actual_tiles_of_interest[j][0]+1, players_actual_tiles_of_interest[j][1]) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][0], players_actual_tiles_of_interest[j][1]+1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][0]-1, players_actual_tiles_of_interest[j][1]) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][0], players_actual_tiles_of_interest[j][1]-1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][0]+1, players_actual_tiles_of_interest[j][1]+1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][0]-1, players_actual_tiles_of_interest[j][1]+1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][0]+1, players_actual_tiles_of_interest[j][1]-1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][0]-1, players_actual_tiles_of_interest[j][1]-1) in players_actual[i]["coordinates"]:
+                        pass
+                    else:
+                        print("temp is being appended")
+                        temp.append(players_actual_tiles_of_interest[j])
+                        print(temp)
 
-            time.sleep|(game_speed)
+            # removing the tiles that do not have a neighbour from players_actual_tiles_of_interest
+            for i in range(len(temp)):
+                players_actual_tiles_of_interest.remove(temp[i])
+                print("removed")
+
+            print(players_actual_tiles_of_interest)
+            
+            temp.clear()
+            
+            print("running")
+            numberofruns += 1
+            if numberofruns == 5:
+                running = False
+                not_end = False
+            #running = False
+            #not_end = False
+            time.sleep(game_speed)
 
 # simulation parameters of optimalization
 running = True
 not_end = True
 game_speed = 0.09
 num_players = 2
+players = []
+players_actual = []
+players_actual_tiles_of_interest = []
+map_occupied_tiles = []
+pixel = 4
+ratio = (1, 1)
+map_size = pixel*pixel
+#for i in range(num_players):
+#    playercoords1 = (random.randint(0, (map_size-1)*ratio[1]), random.randint(0, (map_size-1)*ratio[0]))
+#    map_occupied_tiles.append((playercoords1 ))   
+#    players.append(
+#        {
+#            "color": (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
+#            "coordinates": [(playercoords1[0], playercoords1[1])],
+#            "num_of_tiles": 1
+#        }
+#    )
+players.append({"coordinates": [(0, 0),(1,0),(2,0),
+                                (0, 1),(1,1),(2,1),
+                                (0,2),(1,2),(2,2)], "num_of_tiles": 9})
+   
+players.append({"coordinates": [(0, 3),(1,3),(2,3),(3, 3),(3,1),(3,0)], "num_of_tiles": 7})
 
 
-
-
+print(players[0]["coordinates"])
+print(players[1]["coordinates"])
+players_actual = players
+print(players_actual[0]["coordinates"])
+print(players_actual[1]["coordinates"])
 optimalization()
