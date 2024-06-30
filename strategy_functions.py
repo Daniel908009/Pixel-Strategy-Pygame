@@ -6,6 +6,7 @@ import time
 
 # global variables
 players_actual = []
+players_actual_tiles_of_interest = []
 wars = []
 num_players = 0
 pixel_size = 0
@@ -13,9 +14,10 @@ screen = None
 running = True
 not_end = True
 reset_game = False
+game_speed0 = 0
 
 # Function to receive important data from the main file
-def send_important_data(players, num_players0, pixel_size0, screen0):
+def send_important_data(players, num_players0, pixel_size0, screen0, game_speed0):
     global players_actual
     players_actual = players
     global num_players
@@ -24,13 +26,15 @@ def send_important_data(players, num_players0, pixel_size0, screen0):
     pixel_size = pixel_size0
     global screen
     screen = screen0
+    global game_speed
+    game_speed = game_speed0
 
 # Function to check if a player has some border tiles with another player and returning them
 def border_tiles_func(player1, player2):
     potential_tiles1 = []
     potential_tiles2 = []
     border_tiles = []
-    # Needs to be enhanced, currently only checks in 4 directions
+    # Works in all directions now
     for j in range(len(players_actual[player1]["coordinates"])):
         potential_tiles1.append((players_actual[player1]["coordinates"][j][0]+1, players_actual[player1]["coordinates"][j][1]))
         potential_tiles1.append((players_actual[player1]["coordinates"][j][0]-1, players_actual[player1]["coordinates"][j][1]))
@@ -276,6 +280,54 @@ def is_encircled(tile, player_controling):
         return False
     else:
         return True
+# function that will use a thread to find out which tiles are bordering with something else than the player owning them and therefore are of interest to other functions
+def optimalization():
+    global players_actual, players_actual_tiles_of_interest, running, not_end, game_speed, num_players
+    temp = []
+    numberofruns = 0
+
+    while not_end:
+        while running:
+            # filing the list with the coordinates of all the players
+            for i in range(num_players):
+                players_actual_tiles_of_interest.append(players_actual[i]["coordinates"])
+            # if the tile borders anything else than the player that controls it, it is of interest
+            for l in range(num_players):
+                for m in range(len(players_actual[l]["coordinates"])):
+                    tile = players_actual[l]["coordinates"][m]
+                    for k in range(players_actual[l]["num_of_tiles"]):
+                        if (tile[0]+1, tile[1]) not in players_actual[l]["coordinates"][k] or (tile[0]-1, tile[1]) not in players_actual[l]["coordinates"][k] or (tile[0], tile[1]+1) not in players_actual[l]["coordinates"][k] or (tile[0],tile[1]-1) not in players_actual[l]["coordinates"][k] or (tile[0]+1, tile[1]+1) not in players_actual[l]["coordinates"][k] or (tile[0]-1, tile[1]+1) not in players_actual[l]["coordinates"][k] or (tile[0]+1, tile[1]-1) not in players_actual[l]["coordinates"][k] or (tile[0]-1, tile[1]-1) not in players_actual[l]["coordinates"][k]:
+                            numberofruns += 1
+                    if numberofruns == len(players_actual[l]["coordinates"]):
+                        temp.append(tile)
+            for i in range(len(temp)):
+                for j in range(len(players_actual_tiles_of_interest)):
+                    if temp[i] in players_actual_tiles_of_interest[j]:
+                        players_actual_tiles_of_interest.remove(players_actual_tiles_of_interest[j])
+
+            time.sleep|(game_speed)
+
+ #                   tile = players_actual[l]["coordinates"][m]
+ #                   # 4 directions encirclement check (left, right, up, down)
+ #                   temp.append((tile[0]+1, tile[1]))
+ #                   temp.append((tile[0]-1, tile[1]))
+ #                   temp.append((tile[0], tile[1]+1))
+ #                   temp.append((tile[0], tile[1]-1))
+ #                   # diagonal encirclement check (up-right, up-left, down-right, down-left)
+ #                   temp.append((tile[0]+1, tile[1]+1))
+ #                   temp.append((tile[0]-1, tile[1]+1))
+ #                   temp.append((tile[0]+1, tile[1]-1))
+ #                   temp.append((tile[0]-1, tile[1]-1))
+#
+ #           for i in range(num_players):
+ #               for j in range(len(players_actual[i]["coordinates"])):
+ #                   for k in range(num_players):
+ #                       for h in range(len(players_actual[k]["coordinates"])):
+ #                           if players_actual[i]["coordinates"][j] == players_actual[k]["coordinates"][h]:
+ #                               pass
+ #                           else:
+ #                               pass
+
 
     
 
