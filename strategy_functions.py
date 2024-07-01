@@ -3,6 +3,7 @@
 #necessary imports
 import random
 import time
+from collections import Counter
 
 # global variables
 players_actual = []
@@ -14,7 +15,7 @@ screen = None
 running = True
 not_end = True
 reset_game = False
-game_speed0 = 0
+game_speed = 0
 
 # Function to receive important data from the main file
 def send_important_data(players, num_players0, pixel_size0, screen0, game_speed0):
@@ -280,53 +281,69 @@ def is_encircled(tile, player_controling):
         return False
     else:
         return True
-# function that will use a thread to find out which tiles are bordering with something else than the player owning them and therefore are of interest to other functions
+    
+# this function decides which tiles are of interest to other functions, and hopefully will make the game run not necceserily faster but it could make the speed of the game more stable, provided that it will work like I think it will
+# its now fully operational and implementing is under way
+# curently it does something weird in this place, but I think it could have something to do with the fact that theres multiple threads trying to access the same list, I will try to fix it
 def optimalization():
     global players_actual, players_actual_tiles_of_interest, running, not_end, game_speed, num_players
     temp = []
-    numberofruns = 0
+    #numberofruns = 0
 
     while not_end:
         while running:
-            # filing the list with the coordinates of all the players
+            # this list will be cleared every run, otherwise it will keep adding the same tiles to the list causing the list to grow and eventually bug out
+            players_actual_tiles_of_interest.clear()
+
+            # filing the list with the coordinates of all the players, if coordinates are already in the list they will be ignored
             for i in range(num_players):
                 players_actual_tiles_of_interest.append(players_actual[i]["coordinates"])
-            # if the tile borders anything else than the player that controls it, it is of interest
-            for l in range(num_players):
-                for m in range(len(players_actual[l]["coordinates"])):
-                    tile = players_actual[l]["coordinates"][m]
-                    for k in range(players_actual[l]["num_of_tiles"]):
-                        if (tile[0]+1, tile[1]) not in players_actual[l]["coordinates"][k] or (tile[0]-1, tile[1]) not in players_actual[l]["coordinates"][k] or (tile[0], tile[1]+1) not in players_actual[l]["coordinates"][k] or (tile[0],tile[1]-1) not in players_actual[l]["coordinates"][k] or (tile[0]+1, tile[1]+1) not in players_actual[l]["coordinates"][k] or (tile[0]-1, tile[1]+1) not in players_actual[l]["coordinates"][k] or (tile[0]+1, tile[1]-1) not in players_actual[l]["coordinates"][k] or (tile[0]-1, tile[1]-1) not in players_actual[l]["coordinates"][k]:
-                            numberofruns += 1
-                    if numberofruns == len(players_actual[l]["coordinates"]):
-                        temp.append(tile)
+            
+            # if the tiles in players_actual_tiles_of_interest have a neighbour that is in other players tiles than they can stay, the tiles that do not will be removed, here was the bug, what it basicaly did is it didnt find a neighbour and therefore assumed that it it self is a neighbour, this is fixed now
+            for i in range(num_players):
+                for j in range(len(players_actual_tiles_of_interest)):
+                    for k in range(len(players_actual_tiles_of_interest[j])):
+                        if (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0], players_actual_tiles_of_interest[j][k][1]+1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0], players_actual_tiles_of_interest[j][k][1]-1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]+1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]+1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]-1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]-1) in players_actual[i]["coordinates"]:
+                            pass
+                        elif i == j:
+                            pass
+                        else:
+                            temp.append(players_actual_tiles_of_interest[j][k])
+
+
+            # removing the tiles that do not have a neighbour from players_actual_tiles_of_interest, uses count() to check if the tile is in the temp list enough times to justify removing it
             for i in range(len(temp)):
                 for j in range(len(players_actual_tiles_of_interest)):
-                    if temp[i] in players_actual_tiles_of_interest[j]:
-                        players_actual_tiles_of_interest.remove(players_actual_tiles_of_interest[j])
+                    for k in range(len(players_actual_tiles_of_interest[j])):
+                        for h in range(len(temp)):
+                            try:
+                                if temp[h] == players_actual_tiles_of_interest[j][k]:
+                                    count = Counter(temp)
+                                    if count[temp[i]] == num_players-1 or count[temp[i]] > num_players-1:
+                                        try:
+                                            players_actual_tiles_of_interest[j].remove(temp[i])
+                                        except ValueError:
+                                            pass
+                                    else:
+                                        pass
+                            except IndexError:
+                                pass
+                            else:
+                                pass
 
-            time.sleep|(game_speed)
+            #print(players_actual_tiles_of_interest)
+            
+            temp.clear()
+            count.clear()
 
- #                   tile = players_actual[l]["coordinates"][m]
- #                   # 4 directions encirclement check (left, right, up, down)
- #                   temp.append((tile[0]+1, tile[1]))
- #                   temp.append((tile[0]-1, tile[1]))
- #                   temp.append((tile[0], tile[1]+1))
- #                   temp.append((tile[0], tile[1]-1))
- #                   # diagonal encirclement check (up-right, up-left, down-right, down-left)
- #                   temp.append((tile[0]+1, tile[1]+1))
- #                   temp.append((tile[0]-1, tile[1]+1))
- #                   temp.append((tile[0]+1, tile[1]-1))
- #                   temp.append((tile[0]-1, tile[1]-1))
-#
- #           for i in range(num_players):
- #               for j in range(len(players_actual[i]["coordinates"])):
- #                   for k in range(num_players):
- #                       for h in range(len(players_actual[k]["coordinates"])):
- #                           if players_actual[i]["coordinates"][j] == players_actual[k]["coordinates"][h]:
- #                               pass
- #                           else:
- #                               pass
+            
+            #print("running")
+            #numberofruns += 1
+            #if numberofruns == 5:
+                #running = False
+                #not_end = False
+
+            time.sleep(game_speed)
 
 
     
