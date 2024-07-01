@@ -4,6 +4,7 @@ import random
 import time
 import threading
 import pygame
+from collections import Counter
 
 #def expandsion_initial(num_players, map_free_tiles, index_version_of_free_tiles):
 #    global players_actual
@@ -61,6 +62,8 @@ import pygame
 #print(f"Remaining free tiles: {map_free_tiles}")
 #
 
+# this function decides which tiles are of interest to other functions, somewhere in here is a mistake that causes the function to give weird results 
+# somehow specific tiles are being removed even though they should not be, because they have are neighbours with other players tiles, weird...
 def optimalization():
     global players_actual, players_actual_tiles_of_interest, running, not_end, game_speed, num_players
     temp = []
@@ -68,6 +71,7 @@ def optimalization():
 
     while not_end:
         while running:
+            players_actual_tiles_of_interest.clear()
             # filing the list with the coordinates of all the players, if coordinates are already in the list they will be ignored
             for i in range(num_players):
                 players_actual_tiles_of_interest.append(players_actual[i]["coordinates"])
@@ -77,60 +81,57 @@ def optimalization():
             for i in range(num_players):
                 for j in range(len(players_actual_tiles_of_interest)):
                     for k in range(len(players_actual_tiles_of_interest[j])):
-                        print(str(players_actual_tiles_of_interest[j][k]) + "this is being checked")
                         if (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0], players_actual_tiles_of_interest[j][k][1]+1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0], players_actual_tiles_of_interest[j][k][1]-1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]+1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]+1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]-1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]-1) in players_actual[i]["coordinates"]:
                             pass
                         else:
                             temp.append(players_actual_tiles_of_interest[j][k])
-                            print(temp)
+                            print(str(players_actual_tiles_of_interest[j][k]) + "this is being appended to temp")
+            print(str(temp) + "temp")
+
 
             # removing the tiles that do not have a neighbour from players_actual_tiles_of_interest, uses count() to check if the tile is in the temp list enough times to justify removing it
             for i in range(len(temp)):
                 for j in range(len(players_actual_tiles_of_interest)):
                     for k in range(len(players_actual_tiles_of_interest[j])):
-                        #print("code is still going")
-                        print(str(temp) + "temp")
-                        #print(players_actual_tiles_of_interest[j][k])
                         for h in range(len(temp)):
-                            if temp[h] == players_actual_tiles_of_interest[j][k]:
-                                print("code is here")
-                                print(players_actual_tiles_of_interest[0])
-                                print(list(players_actual_tiles_of_interest).count(temp[i]))
-                                if players_actual_tiles_of_interest[j].count(temp[i]) == num_players-1 or players_actual_tiles_of_interest[j].count(temp[i]) > num_players-1:
-                                    players_actual_tiles_of_interest[j].remove(temp[i])
-                                    print("removed"+ str(temp[i]))
-                                else:
-                                    pass
+                            try:
+                                if temp[h] == players_actual_tiles_of_interest[j][k]:
+                                    count = Counter(temp)
+                                    print(count)
+                                    print(count)
+                                    if count[temp[i]] == num_players-1 or count[temp[i]] > num_players-1:
+                                        try:
+                                            players_actual_tiles_of_interest[j].remove(temp[i])
+                                        except ValueError:
+                                            pass
+                                    else:
+                                        pass
+                            except IndexError:
+                                pass
                             else:
                                 pass
-
-            # removing the tiles that do not have a neighbour from players_actual_tiles_of_interest
-           # for i in range(len(temp)):
-           #     for j in range(len(players_actual_tiles_of_interest)):
-           #         try:
-           #             players_actual_tiles_of_interest[j].remove(temp[i])
-           #             print("removed"+ str(temp[i]))
-           #         except ValueError:
-           #             print("not removed")
 
             print(players_actual_tiles_of_interest)
             
             temp.clear()
+            count.clear()
+
             
             print("running")
             numberofruns += 1
-            if numberofruns == 5:
-                running = False
-                not_end = False
+            #if numberofruns == 5:
+            #    running = False
+            #    not_end = False
             running = False
             not_end = False
             time.sleep(game_speed)
+            #time.sleep(1)
 
 # simulation parameters of optimalization
 running = True
 not_end = True
 game_speed = 0.09
-num_players = 3
+num_players = 4
 players = []
 players_actual = []
 players_actual_tiles_of_interest = []
@@ -149,16 +150,17 @@ map_size = pixel*pixel
 #        }
 #    )
 players.append({"coordinates": [(0, 0),(1,0),(2,0),
-                                (0, 1),(1,1),(2,1),
-                                (0,2),(1,2),(2,2)], "num_of_tiles": 9})
+                                (0, 1),(2,1),
+                                (0,2),(1,2),(2,2)], "num_of_tiles": 8})
    
 players.append({"coordinates": [(0, 3),(1,3),(2,3)], "num_of_tiles": 3})
 
-players.append({"coordinates": [(3, 3),(3,1),(3,0), (3,2)], "num_of_tiles": 4})
+players.append({"coordinates": [(3, 3),(3,1)], "num_of_tiles": 2})
+
+players.append({"coordinates": [(3,0), (3,2), (1,1)], "num_of_tiles": 3})
 
 
 
 players_actual = players
-print(players_actual[0]["coordinates"])
-print(players_actual[1]["coordinates"])
+
 optimalization()
