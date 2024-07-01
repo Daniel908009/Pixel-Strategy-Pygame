@@ -105,7 +105,6 @@ def reset_game():
 
 running = True
 initial_check = True
-Threads_started = False
 sended = False
 just_once = True
 not_end = True
@@ -185,7 +184,7 @@ while running:
             initial_check = False
 
     # initial drawing of players, threading had some issues with this part, therefore it is implemented like this
-    if Threads_started == False:
+    if thread1.is_alive() == False:
         for i in range(num_players):
             for j in range(len(players[i]["coordinates"])): 
                 pygame.draw.rect(screen, players[i]["color"], (players[i]["coordinates"][j][0]*pixel_size, players[i]["coordinates"][j][1]*pixel_size, pixel_size, pixel_size))
@@ -196,23 +195,24 @@ while running:
             if sended == False:
                 send_important_data(players, num_players, pixel_size, screen, game_speed)
                 sended = True
-            #if thread3.is_alive() == False:
-                #thread3.start()
+#            if thread3.is_alive() == False:
+#                print("started thread3")
+#                thread3.start()
             map_free_tiles = expandsion_initial(num_players,map_free_tiles, index_version_of_free_tiles)
             initial_expansion_done = True
         except IndexError:
             pass
 
-    # starting the threads
-    elif Threads_started == False and map_free_tiles == 0:
+    # starting the threads, more inteligently implemented now
+    elif thread1.is_alive() == False and thread2.is_alive() == False:
         thread1.start()
         thread2.start()
-        Threads_started = True
+        thread3.start()
     else:
         if initial_expansion_done:
             reset_reset_game()
         else:
-            pass        
+            pass
 
     time.sleep(game_speed)
     pygame.display.update()
@@ -228,6 +228,6 @@ stop_thread()
 try:
     thread1.join()
     thread2.join()
-    #thread3.join()
+    thread3.join()
 except:
     pass
