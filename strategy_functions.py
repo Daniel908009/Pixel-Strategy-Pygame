@@ -283,27 +283,31 @@ def is_encircled(tile, player_controling):
         return True
     
 # this function decides which tiles are of interest to other functions, and hopefully will make the game run not necceserily faster but it could make the speed of the game more stable, provided that it will work like I think it will
-# its now fully operational and implementing is under way
+# its now not fully operational and implementing is under way
 # curently it does something weird in this place, but I think it could have something to do with the fact that theres multiple threads trying to access the same list, I will try to fix it
 def optimalization():
     global players_actual, players_actual_tiles_of_interest, running, not_end, game_speed, num_players
+    play = players_actual.copy()
+    print(play)
     temp = []
-    #numberofruns = 0
+    numberofruns = 0
 
     while not_end:
+        print("outer loop running")
         while running:
+            print("inner loop running")
             # this list will be cleared every run, otherwise it will keep adding the same tiles to the list causing the list to grow and eventually bug out
             players_actual_tiles_of_interest.clear()
 
             # filing the list with the coordinates of all the players, if coordinates are already in the list they will be ignored
             for i in range(num_players):
-                players_actual_tiles_of_interest.append(players_actual[i]["coordinates"])
+                players_actual_tiles_of_interest.append(play[i]["coordinates"])
             
             # if the tiles in players_actual_tiles_of_interest have a neighbour that is in other players tiles than they can stay, the tiles that do not will be removed, here was the bug, what it basicaly did is it didnt find a neighbour and therefore assumed that it it self is a neighbour, this is fixed now
             for i in range(num_players):
                 for j in range(len(players_actual_tiles_of_interest)):
                     for k in range(len(players_actual_tiles_of_interest[j])):
-                        if (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0], players_actual_tiles_of_interest[j][k][1]+1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0], players_actual_tiles_of_interest[j][k][1]-1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]+1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]+1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]-1) in players_actual[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]-1) in players_actual[i]["coordinates"]:
+                        if (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0], players_actual_tiles_of_interest[j][k][1]+1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0], players_actual_tiles_of_interest[j][k][1]-1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]+1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]+1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]-1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]-1) in play[i]["coordinates"]:
                             pass
                         elif i == j:
                             pass
@@ -321,9 +325,17 @@ def optimalization():
                                     count = Counter(temp)
                                     if count[temp[i]] == num_players-1 or count[temp[i]] > num_players-1:
                                         try:
-                                            players_actual_tiles_of_interest[j].remove(temp[i])
+                                            print("removing tile")
+                                            list1 = players_actual_tiles_of_interest[j]
+                                            print("list conversion done")
+                                            print(list1)
+                                            print(temp[i])
+                                            list1.remove(temp[i])
+                                            print("removal done")
+                                            
+                                            #players_actual_tiles_of_interest[j].remove(temp[i])
                                         except ValueError:
-                                            pass
+                                            print("value error")
                                     else:
                                         pass
                             except IndexError:
@@ -337,9 +349,10 @@ def optimalization():
             count.clear()
 
             
-            #print("running")
-            #numberofruns += 1
-            #if numberofruns == 5:
+            print("thread 3 running")
+            numberofruns += 1
+            if numberofruns == 5:
+                stop_thread()
                 #running = False
                 #not_end = False
 
