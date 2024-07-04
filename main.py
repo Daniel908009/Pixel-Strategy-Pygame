@@ -4,7 +4,7 @@ import threading
 import pygame
 import random
 import time
-from strategy_functions import map_logic, remove_occupied_tiles, expandsion_initial, send_important_data, stop_all_functions, start_all_functions, stop_thread, game_full_reset, reset_reset_game, optimalization
+from strategy_functions import map_logic, remove_occupied_tiles, expandsion_initial, send_important_data, stop_all_functions, start_all_functions, stop_thread, game_full_reset, reset_reset_game#, optimalization
 
 pygame.init()
 
@@ -68,6 +68,8 @@ def drawing_players():
                             pass
             except IndexError:
                     pass
+    print("thread1 stopped")
+    stop_thread()
   
 # function for reseting the game and setting the initial values again, currently working only partially, threading has some issues with this part
 # only pain and suffering comes from this function, will be fixed once the game is fully functional and optimized
@@ -113,7 +115,7 @@ initial_expansion_done = False
 # implemented multithreading, curently only the first two threads are working, the third one is under construction and testing, will be fixed soon though
 thread1 = threading.Thread(target=drawing_players)
 thread2 = threading.Thread(target=map_logic, args=(game_speed, num_players))
-thread3 = threading.Thread(target= optimalization)
+#thread3 = threading.Thread(target= optimalization)
 
 # Main loop
 while running:
@@ -207,7 +209,7 @@ while running:
     elif thread1.is_alive() == False and thread2.is_alive() == False:
         thread1.start()
         thread2.start()
-        thread3.start()
+        #thread3.start()
     else:
         if initial_expansion_done:
             reset_reset_game()
@@ -223,11 +225,25 @@ while running:
 pygame.quit()
 stop_all_functions()
 not_end = False
-stop_thread()
+#if thread1.is_alive() == False and thread2.is_alive() == False:
+#    print("threads stopped")
+##elif thread2.is_alive():
+# #   thread2.join()
+#  #  print("thread2 stopped")
+#while True:
+#    if thread2.is_alive() == True:
+#        print("thread2 still alive")
+#
+#    elif thread2.is_alive() == False:
+#        print("thread2 stopped")
+#        break
+#    else:
+#        print("how did we get here")
+#    print("end of the loop")
 
-try:
-    thread1.join()
-    thread2.join()
-    thread3.join()
-except:
-    pass
+#try:
+#    thread1.join()
+#    thread2.join()
+    #thread3.join()
+#except:
+#    pass
