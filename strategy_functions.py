@@ -131,8 +131,12 @@ def map_logic(game_speed, num_players):
                 diplomacy_logic(num_players)
                 battle_logic()
                 time.sleep(game_speed)
+                #print("running still")
             time.sleep(0.1)
+        #print("running")
         time.sleep(0.1)
+    #print("thread2 stopped")        
+    stop_thread()
 
 
 # diplomacy logic function, decides what will happen between players
@@ -285,80 +289,80 @@ def is_encircled(tile, player_controling):
 # this function decides which tiles are of interest to other functions, and hopefully will make the game run not necceserily faster but it could make the speed of the game more stable, provided that it will work like I think it will
 # its now not fully operational and implementing is under way
 # curently it does something weird in this place, but I think it could have something to do with the fact that theres multiple threads trying to access the same list, I will try to fix it
-def optimalization():
-    global players_actual, players_actual_tiles_of_interest, running, not_end, game_speed, num_players
-    play = players_actual.copy()
-    print(play)
-    temp = []
-    numberofruns = 0
-
-    while not_end:
-        print("outer loop running")
-        while running:
-            print("inner loop running")
-            # this list will be cleared every run, otherwise it will keep adding the same tiles to the list causing the list to grow and eventually bug out
-            players_actual_tiles_of_interest.clear()
-
-            # filing the list with the coordinates of all the players, if coordinates are already in the list they will be ignored
-            for i in range(num_players):
-                players_actual_tiles_of_interest.append(play[i]["coordinates"])
-            
-            # if the tiles in players_actual_tiles_of_interest have a neighbour that is in other players tiles than they can stay, the tiles that do not will be removed, here was the bug, what it basicaly did is it didnt find a neighbour and therefore assumed that it it self is a neighbour, this is fixed now
-            for i in range(num_players):
-                for j in range(len(players_actual_tiles_of_interest)):
-                    for k in range(len(players_actual_tiles_of_interest[j])):
-                        if (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0], players_actual_tiles_of_interest[j][k][1]+1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0], players_actual_tiles_of_interest[j][k][1]-1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]+1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]+1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]-1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]-1) in play[i]["coordinates"]:
-                            pass
-                        elif i == j:
-                            pass
-                        else:
-                            temp.append(players_actual_tiles_of_interest[j][k])
-
-
-            # removing the tiles that do not have a neighbour from players_actual_tiles_of_interest, uses count() to check if the tile is in the temp list enough times to justify removing it
-            for i in range(len(temp)):
-                for j in range(len(players_actual_tiles_of_interest)):
-                    for k in range(len(players_actual_tiles_of_interest[j])):
-                        for h in range(len(temp)):
-                            try:
-                                if temp[h] == players_actual_tiles_of_interest[j][k]:
-                                    count = Counter(temp)
-                                    if count[temp[i]] == num_players-1 or count[temp[i]] > num_players-1:
-                                        try:
-                                            print("removing tile")
-                                            list1 = players_actual_tiles_of_interest[j]
-                                            print("list conversion done")
-                                            print(list1)
-                                            print(temp[i])
-                                            list1.remove(temp[i])
-                                            print("removal done")
-                                            
-                                            #players_actual_tiles_of_interest[j].remove(temp[i])
-                                        except ValueError:
-                                            print("value error")
-                                    else:
-                                        pass
-                            except IndexError:
-                                pass
-                            else:
-                                pass
-
-            #print(players_actual_tiles_of_interest)
-            
-            temp.clear()
-            count.clear()
-
-            
-            print("thread 3 running")
-            numberofruns += 1
-            if numberofruns == 5:
-                stop_thread()
-                #running = False
-                #not_end = False
-
-            time.sleep(game_speed)
-
-
+#def optimalization():
+#    global players_actual, players_actual_tiles_of_interest, running, not_end, game_speed, num_players
+#    play = players_actual.copy()
+#    print(play)
+#    temp = []
+#    numberofruns = 0
+#
+#    while not_end:
+#        print("outer loop running")
+#        while running:
+#            print("inner loop running")
+#            # this list will be cleared every run, otherwise it will keep adding the same tiles to the list causing the list to grow and eventually bug out
+#            players_actual_tiles_of_interest.clear()
+#
+#            # filing the list with the coordinates of all the players, if coordinates are already in the list they will be ignored
+#            for i in range(num_players):
+#                players_actual_tiles_of_interest.append(play[i]["coordinates"])
+#            
+#            # if the tiles in players_actual_tiles_of_interest have a neighbour that is in other players tiles than they can stay, the tiles that do not will be removed, here was the bug, what it basicaly did is it didnt find a neighbour and therefore assumed that it it self is a neighbour, this is fixed now
+#            for i in range(num_players):
+#                for j in range(len(players_actual_tiles_of_interest)):
+#                    for k in range(len(players_actual_tiles_of_interest[j])):
+#                        if (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0], players_actual_tiles_of_interest[j][k][1]+1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0], players_actual_tiles_of_interest[j][k][1]-1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]+1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]+1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]+1, players_actual_tiles_of_interest[j][k][1]-1) in play[i]["coordinates"] or (players_actual_tiles_of_interest[j][k][0]-1, players_actual_tiles_of_interest[j][k][1]-1) in play[i]["coordinates"]:
+#                            pass
+#                        elif i == j:
+#                            pass
+#                        else:
+#                            temp.append(players_actual_tiles_of_interest[j][k])
+#
+#
+#            # removing the tiles that do not have a neighbour from players_actual_tiles_of_interest, uses count() to check if the tile is in the temp list enough times to justify removing it
+#            for i in range(len(temp)):
+#                for j in range(len(players_actual_tiles_of_interest)):
+#                    for k in range(len(players_actual_tiles_of_interest[j])):
+#                        for h in range(len(temp)):
+#                            try:
+#                                if temp[h] == players_actual_tiles_of_interest[j][k]:
+#                                    count = Counter(temp)
+#                                    if count[temp[i]] == num_players-1 or count[temp[i]] > num_players-1:
+#                                        try:
+#                                            print("removing tile")
+#                                            list1 = players_actual_tiles_of_interest[j]
+#                                            print("list conversion done")
+#                                            print(list1)
+#                                            print(temp[i])
+#                                            list1.remove(temp[i])
+#                                            print("removal done")
+#                                            
+#                                            #players_actual_tiles_of_interest[j].remove(temp[i])
+#                                        except ValueError:
+#                                            print("value error")
+#                                    else:
+#                                        pass
+#                            except IndexError:
+#                                pass
+#                            else:
+#                                pass
+#
+#            #print(players_actual_tiles_of_interest)
+#            
+#            temp.clear()
+#            count.clear()
+#
+#            
+#            print("thread 3 running")
+#            numberofruns += 1
+#            if numberofruns == 5:
+#                stop_thread()
+#                #running = False
+#                #not_end = False
+#
+#            time.sleep(game_speed)
+#
+#
     
 
 
